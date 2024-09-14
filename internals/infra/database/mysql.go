@@ -1,13 +1,11 @@
 package database
 
 import (
-	"bufio"
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/guirialli/rater_limit/config"
-	"io"
-	"os"
+	"github.com/guirialli/rater_limit/pkg/utils"
 	"strconv"
 )
 
@@ -66,30 +64,10 @@ func (d *MySql) InitDatabase(file string) error {
 	if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS " + d.database); err != nil {
 		return err
 	}
-
-	initFile, err := os.Open(file)
-	if err != nil {
+	if err := utils.NewDatabaseUtils().ExecScript(db, file); err != nil {
 		return err
 	}
-	defer initFile.Close()
-	reader := bufio.NewReader(initFile)
-	sqlStmt := ""
 
-	for {
-		line, err := reader.ReadString('\n')
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-		sqlStmt += line
-		if line == ");\n" || line == ";\n" || line == ");" {
-			if _, err := db.Exec(sqlStmt); err != nil {
-				return err
-			}
-			sqlStmt = ""
-		}
-	}
 	fmt.Println("Database Initialized with success!")
 	return db.Close()
 }

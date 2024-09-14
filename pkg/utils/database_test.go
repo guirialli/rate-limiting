@@ -22,11 +22,16 @@ func (s *DatabaseTestSuite) SetupTest() {
 
 }
 
+func (s *DatabaseTestSuite) TestIsEOL() {
+	isEOL := NewDatabaseUtils().isEOL("SELECT * FROM BOOKS;")
+	s.True(isEOL)
+}
+
 func (s *DatabaseTestSuite) TestInitDatabase() {
-	err := NewDatabaseUtils().InitDatabase(s.Db, "../../test/database/init.sql")
+	err := NewDatabaseUtils().ExecScript(s.Db, "../../test/database/init.sql")
 	s.Nil(err)
 }
 
-func TestExampleTestSuite(t *testing.T) {
+func TestDatabaseTestSuite(t *testing.T) {
 	suite.Run(t, new(DatabaseTestSuite))
 }

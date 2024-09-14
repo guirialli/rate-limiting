@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 type Database struct{}
@@ -14,8 +15,12 @@ func NewDatabaseUtils() *Database {
 	return &Database{}
 }
 
-func (f *Database) InitDatabase(db *sql.DB, file string) error {
-	initFile, err := os.Open(file)
+func (d *Database) isEOL(line string) bool {
+	return strings.Contains(line, ";")
+}
+
+func (d *Database) ExecScript(db *sql.DB, sqlFile string) error {
+	initFile, err := os.Open(sqlFile)
 	if err != nil {
 		return fmt.Errorf("cold not open file: %s", err.Error())
 	}
