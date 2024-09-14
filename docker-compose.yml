@@ -1,0 +1,16 @@
+services:
+  db:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    container_name: "rater_limit_db"
+    volumes:
+      - ./.docker/database:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "rater_limit"
+    networks:
+      - rater_limit_db_network
+networks:
+  rater_limit_db_network:
+    driver: bridge
