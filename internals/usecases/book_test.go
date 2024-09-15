@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"github.com/guirialli/rater_limit/internals/infra/database"
+	"github.com/guirialli/rater_limit/internals/vos"
 	"github.com/guirialli/rater_limit/test/mock"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -79,6 +80,51 @@ func (s *BookTestSuite) TestFindById() {
 	s.Equal(book.Pages, result.Pages)
 	s.Equal(*book.Description, *result.Description)
 	s.Equal(book.Author, result.Author)
+}
+
+func (s *BookTestSuite) TestUpdateBook() {
+	db, err := s.db.InitDatabaseGetConnection(s.fileInit)
+	if err != nil {
+		panic(err)
+	}
+	ctx := context.Background()
+
+	description := "test"
+	bookCreate := mock.NewBookMock().MockCreate(&description)
+	book, _ := s.useCase.Create(ctx, db, bookCreate)
+
+	description2 := "test2"
+	result, err := s.useCase.Update(ctx, db, book.Id, &vos.BookUpdate{
+		Title:       "test2",
+		Pages:       0,
+		Author:      "test2",
+		Description: &description2,
+	})
+	s.Nil(err)
+	s.NotNil(result)
+
+	s.Equal(book.Id, result.Id)
+	s.NotEqual(description, *result.Description)
+	s.NotEqual(book.Pages, result.Pages)
+	s.NotEqual(book.Title, result.Title)
+	s.NotEqual(book.Author, result.Author)
+}
+
+func (s *BookTestSuite) TestDeleteBook() {
+	db, err := s.db.InitDatabaseGetConnection(s.fileInit)
+	if err != nil {
+		panic(err)
+	}
+	ctx := context.Background()
+
+	description := "test"
+	bookCreate := mock.NewBookMock().MockCreate(&description)
+	book, _ := s.useCase.Create(ctx, db, bookCreate)
+
+	err = s.useCase.Delete(ctx, db, book.Id)
+	s.Nil(err)
+	_, err = s.useCase.FindById(ctx, db, book.Id)
+	s.NotNil(err)
 }
 
 func TestBookTestSuit(t *testing.T) {
