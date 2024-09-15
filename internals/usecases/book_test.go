@@ -58,6 +58,29 @@ func (s *BookTestSuite) TestFindAll() {
 
 }
 
+func (s *BookTestSuite) TestFindById() {
+	db, err := s.db.InitDatabaseGetConnection(s.fileInit)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx := context.Background()
+
+	description := "test"
+	bookCreate := mock.NewBookMock().MockCreate(&description)
+	book, _ := s.useCase.Create(ctx, db, bookCreate)
+
+	result, err := s.useCase.FindById(ctx, db, book.Id)
+	s.Nil(err)
+	s.NotNil(result)
+
+	s.Equal(book.Id, result.Id)
+	s.Equal(book.Title, result.Title)
+	s.Equal(book.Pages, result.Pages)
+	s.Equal(*book.Description, *result.Description)
+	s.Equal(book.Author, result.Author)
+}
+
 func TestBookTestSuit(t *testing.T) {
 	suite.Run(t, new(BookTestSuite))
 }

@@ -19,7 +19,7 @@ func NewBook() *Book {
 
 func (b *Book) scan(row *sql.Rows) (entity.Book, error) {
 	var book entity.Book
-	err := row.Scan(&book.Id, &book.Title, &book.Description, &book.Author)
+	err := row.Scan(&book.Id, &book.Title, &book.Pages, &book.Description, &book.Author)
 	if err != nil {
 		return book, fmt.Errorf("error on scan data: %w", err)
 	}
@@ -52,6 +52,7 @@ func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Boo
 	if err != nil {
 		return nil, fmt.Errorf("failed to find book by id: %w", err)
 	}
+	row.Next()
 	book, err := b.scan(row)
 	return &book, err
 
