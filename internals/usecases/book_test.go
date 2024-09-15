@@ -17,7 +17,7 @@ type BookTestSuite struct {
 }
 
 func (s *BookTestSuite) SetupTest() {
-	db := database.NewSqlite("test.db")
+	db := database.NewSqlite("file::memory:?cache=shared")
 	s.db = db
 	s.useCase = NewBook()
 	s.fileInit = "../../test/database/init.sql"
@@ -64,6 +64,7 @@ func (s *BookTestSuite) TestFindById() {
 	if err != nil {
 		panic(err)
 	}
+	defer db.Close()
 
 	ctx := context.Background()
 
@@ -87,6 +88,7 @@ func (s *BookTestSuite) TestUpdateBook() {
 	if err != nil {
 		panic(err)
 	}
+	defer db.Close()
 	ctx := context.Background()
 
 	description := "test"
@@ -108,6 +110,34 @@ func (s *BookTestSuite) TestUpdateBook() {
 	s.NotEqual(book.Pages, result.Pages)
 	s.NotEqual(book.Title, result.Title)
 	s.NotEqual(book.Author, result.Author)
+}
+
+func (s *BookTestSuite) TestPatchBook() {
+	db, err := s.db.InitDatabaseGetConnection(s.fileInit)
+	if err != nil {
+		panic(err)
+
+	}
+	defer db.Close()
+	ctx := context.Background()
+
+	description := "test"
+	bookCreate := mock.NewBookMock().MockCreate(&description)
+	book, _ := s.useCase.Create(ctx, db, bookCreate)
+
+	title := "test2"
+	result, err := s.useCase.Patch(ctx, db, book.Id, &vos.BookPatch{
+		Title: &title,
+	})
+
+	s.Nil(err)
+	s.NotNil(result)
+
+	s.Equal(book.Id, result.Id)
+	s.NotEqual(book.Title, result.Title)
+	s.Equal(book.Pages, result.Pages)
+	s.Equal(*book.Description, *result.Description)
+	s.Equal(book.Author, result.Author)
 }
 
 func (s *BookTestSuite) TestDeleteBook() {

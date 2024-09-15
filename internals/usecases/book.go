@@ -32,6 +32,7 @@ func (b *Book) FindAll(ctx context.Context, db *sql.DB) (*[]entity.Book, error) 
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		book, err := b.scan(rows)
@@ -52,6 +53,8 @@ func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Boo
 	if err != nil {
 		return nil, fmt.Errorf("failed to find book by id: %w", err)
 	}
+	defer row.Close()
+
 	row.Next()
 	book, err := b.scan(row)
 	return &book, err
@@ -117,7 +120,7 @@ func (b *Book) Patch(ctx context.Context, db *sql.DB, id string, bookPatch *vos.
 	if bookPatch.Description != nil {
 		bookUpdate.Description = bookPatch.Description
 	} else {
-		bookUpdate.Description = bookPatch.Description
+		bookUpdate.Description = book.Description
 	}
 
 	if bookPatch.Author != nil {
