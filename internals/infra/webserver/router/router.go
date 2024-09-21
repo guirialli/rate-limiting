@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/guirialli/rater_limit/internals/infra/webserver/middleware"
 	"net/http"
 )
 
@@ -13,7 +14,7 @@ type Router struct {
 
 type WithMiddlewares struct {
 	Routers     []Router
-	Middlewares []func(next http.Handler) http.Handler
+	Middlewares []middleware.Middleware
 }
 
 type ChiRoute struct {

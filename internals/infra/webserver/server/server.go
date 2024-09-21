@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/guirialli/rater_limit/config"
+	"github.com/guirialli/rater_limit/internals/infra/webserver/middleware"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/router"
 	"net/http"
 	"strings"
@@ -11,14 +12,14 @@ import (
 
 type Server struct {
 	routers     []router.Router
-	middlewares []func(next http.Handler) http.Handler
+	middlewares []middleware.Middleware
 	config      config.WebServer
 	chiRoutes   []router.ChiRoute
 }
 
 func NewServer(
 	router []router.Router,
-	middlewares []func(next http.Handler) http.Handler,
+	middlewares []middleware.Middleware,
 	config config.WebServer, chiRoutes []router.ChiRoute) *Server {
 	return &Server{
 		routers:     router,
@@ -49,7 +50,7 @@ func (s *Server) useRouters(r *chi.Mux, routers []router.Router) error {
 	return nil
 }
 
-func (s *Server) useMiddlewares(r *chi.Mux, middlewares []func(next http.Handler) http.Handler) {
+func (s *Server) useMiddlewares(r *chi.Mux, middlewares []middleware.Middleware) {
 	for _, mw := range middlewares {
 		r.Use(mw)
 	}
