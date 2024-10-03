@@ -26,7 +26,7 @@ func (b *Book) scan(row *sql.Rows) (entity.Book, error) {
 	return book, err
 }
 
-func (b *Book) FindAll(ctx context.Context, db *sql.DB) (*[]entity.Book, error) {
+func (b *Book) FindAll(ctx context.Context, db *sql.DB) ([]entity.Book, error) {
 	var books []entity.Book
 	rows, err := db.QueryContext(ctx, "SELECT * FROM books")
 	if err != nil {
@@ -45,7 +45,7 @@ func (b *Book) FindAll(ctx context.Context, db *sql.DB) (*[]entity.Book, error) 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return &books, nil
+	return books, nil
 }
 
 func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Book, error) {

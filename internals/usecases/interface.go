@@ -8,7 +8,7 @@ import (
 )
 
 type IBook interface {
-	FindAll(ctx context.Context, db *sql.DB) (*[]entity.Book, error)
+	FindAll(ctx context.Context, db *sql.DB) ([]entity.Book, error)
 	FindById(ctx context.Context, db *sql.DB, id string) (*entity.Book, error)
 	Create(ctx context.Context, db *sql.DB, bookCreate *vos.BookCreate) (*entity.Book, error)
 	Patch(ctx context.Context, db *sql.DB, id string, bookUpdate *vos.BookPatch) (*entity.Book, error)
@@ -17,7 +17,7 @@ type IBook interface {
 }
 
 type IAuthor interface {
-	FindAll(ctx context.Context, db *sql.DB) (*[]entity.Author, error)
+	FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, error)
 	FindByID(ctx context.Context, db *sql.DB, id string) (*entity.Author, error)
 	Create(ctx context.Context, db *sql.DB, authorCreate *vos.AuthorCreate) (*entity.Author, error)
 	Patch(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorPatch) (*entity.Author, error)

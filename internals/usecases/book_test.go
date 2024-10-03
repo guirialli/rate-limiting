@@ -6,6 +6,7 @@ import (
 	"github.com/guirialli/rater_limit/internals/vos"
 	"github.com/guirialli/rater_limit/test/mock"
 	"github.com/stretchr/testify/suite"
+	"math/rand/v2"
 	"testing"
 )
 
@@ -32,7 +33,7 @@ func (s *BookTestSuite) TestCreateBook() {
 
 	ctx := context.Background()
 	var description *string
-	bookCreate := mock.NewBookMock().MockCreate(description)
+	bookCreate := mock.NewBookMock().Create(description)
 
 	book, err := s.useCase.Create(ctx, db, bookCreate)
 
@@ -51,11 +52,19 @@ func (s *BookTestSuite) TestFindAll() {
 		panic(err)
 	}
 	defer db.Close()
+	length := rand.IntN(1000) + 1
 
 	ctx := context.Background()
+	for i := 0; i < length; i++ {
+		_, err = s.useCase.Create(ctx, db, mock.NewBookMock().Create(nil))
+	}
+	if err != nil {
+		panic(err)
+	}
 	book, err := s.useCase.FindAll(ctx, db)
 	s.Nil(err)
 	s.NotNil(book)
+	s.Len(book, length)
 
 }
 
@@ -69,7 +78,7 @@ func (s *BookTestSuite) TestFindById() {
 	ctx := context.Background()
 
 	description := "test"
-	bookCreate := mock.NewBookMock().MockCreate(&description)
+	bookCreate := mock.NewBookMock().Create(&description)
 	book, _ := s.useCase.Create(ctx, db, bookCreate)
 
 	result, err := s.useCase.FindById(ctx, db, book.Id)
@@ -92,7 +101,7 @@ func (s *BookTestSuite) TestUpdateBook() {
 	ctx := context.Background()
 
 	description := "test"
-	bookCreate := mock.NewBookMock().MockCreate(&description)
+	bookCreate := mock.NewBookMock().Create(&description)
 	book, _ := s.useCase.Create(ctx, db, bookCreate)
 
 	description2 := "test2"
@@ -122,7 +131,7 @@ func (s *BookTestSuite) TestPatchBook() {
 	ctx := context.Background()
 
 	description := "test"
-	bookCreate := mock.NewBookMock().MockCreate(&description)
+	bookCreate := mock.NewBookMock().Create(&description)
 	book, _ := s.useCase.Create(ctx, db, bookCreate)
 
 	title := "test2"
@@ -148,7 +157,7 @@ func (s *BookTestSuite) TestDeleteBook() {
 	ctx := context.Background()
 
 	description := "test"
-	bookCreate := mock.NewBookMock().MockCreate(&description)
+	bookCreate := mock.NewBookMock().Create(&description)
 	book, _ := s.useCase.Create(ctx, db, bookCreate)
 
 	err = s.useCase.Delete(ctx, db, book.Id)
