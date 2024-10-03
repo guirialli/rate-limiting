@@ -8,7 +8,7 @@ func NewBookMock() *Book {
 	return &Book{}
 }
 
-func (b *Book) MockCreate(description *string) *vos.BookCreate {
+func (b *Book) Create(description *string) *vos.BookCreate {
 	return &vos.BookCreate{
 		Title:       "test",
 		Pages:       100,

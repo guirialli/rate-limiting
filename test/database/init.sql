@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS authors;
 
 CREATE TABLE IF NOT EXISTS books
 (
@@ -7,4 +8,11 @@ CREATE TABLE IF NOT EXISTS books
     pages       int,
     description TEXT,
     author_id   varchar(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS authors (
+    id varchar(255) PRIMARY KEY,
+    name varchar(255) NOT NULL,
+    birthday datetime,
+    description TEXT
 );
