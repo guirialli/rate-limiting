@@ -19,6 +19,9 @@ func NewAuthor() *Author {
 func (a *Author) scan(r *sql.Rows) (entity.Author, error) {
 	var author entity.Author
 	err := r.Scan(&author.Id, &author.Name, &author.Birthday, &author.Description)
+	if err != nil {
+		return author, fmt.Errorf("error scanning author: %w", err)
+	}
 	return author, err
 }
 
@@ -39,10 +42,11 @@ func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, erro
 	}
 	return authors, nil
 }
+
 func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Author, error) {
 	rows, err := db.QueryContext(ctx, "SELECT * FROM authors WHERE id=? LIMIT 1", id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error finding author by id: %w", err)
 	}
 	defer rows.Close()
 
@@ -72,4 +76,17 @@ func (a *Author) Create(ctx context.Context, db *sql.DB, authorCreate *vos.Autho
 	}
 
 	return author, nil
+}
+
+func (a *Author) Update(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorUpdate) (*entity.Author, error) {
+	return uow.NewTransaction(db, func() (*entity.Author, error) {
+		_, err := db.ExecContext(ctx, "UPDATE authors SET name=?, description=?, birthday=? WHERE id=?",
+			authorUpdate.Name, authorUpdate.Description, authorUpdate.Birthday, id,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error updating author: %w", err)
+		}
+		return a.FindById(ctx, db, id)
+	}).Exec()
 }
