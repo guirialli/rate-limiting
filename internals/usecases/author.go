@@ -90,3 +90,28 @@ func (a *Author) Update(ctx context.Context, db *sql.DB, id string, authorUpdate
 		return a.FindById(ctx, db, id)
 	}).Exec()
 }
+
+func (a *Author) Patch(ctx context.Context, db *sql.DB, id string, authorPatch *vos.AuthorPatch) (*entity.Author, error) {
+	author, err := a.FindById(ctx, db, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if authorPatch.Name == nil {
+		authorPatch.Name = &author.Name
+	}
+	if authorPatch.Description == nil {
+		authorPatch.Description = author.Description
+	}
+	if authorPatch.Birthday == nil {
+		authorPatch.Birthday = author.Birthday
+	}
+
+	authorUpdate := &vos.AuthorUpdate{
+		Name:        *authorPatch.Name,
+		Birthday:    authorPatch.Birthday,
+		Description: authorPatch.Description,
+	}
+
+	return a.Update(ctx, db, id, authorUpdate)
+}

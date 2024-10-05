@@ -27,7 +27,8 @@ func (s *AuthorTestSuite) SetupTest() {
 }
 
 func (s *AuthorTestSuite) createAuthor(ctx context.Context, db *sql.DB) *entity.Author {
-	author, err := s.useCase.Create(ctx, db, mock.NewAuthor().Create())
+	d := "teste"
+	author, err := s.useCase.Create(ctx, db, mock.NewAuthor().Create(&d))
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +39,7 @@ func (s *AuthorTestSuite) TestCreateAuthor() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
 	ctx := context.Background()
-	authorCreate := mock.NewAuthor().Create()
+	authorCreate := mock.NewAuthor().Create(nil)
 
 	author, err := s.useCase.Create(ctx, db, authorCreate)
 
@@ -124,6 +125,47 @@ func (s *AuthorTestSuite) TestUpdateIdNotFound() {
 		Description: nil,
 		Birthday:    nil,
 	})
+
+	s.NotNil(err)
+	s.Nil(result)
+}
+
+func (s *AuthorTestSuite) TestPatchFull() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	author := s.createAuthor(context.Background(), db)
+	authorPatch := mock.NewAuthor().Patch(nil, nil, nil)
+
+	result, err := s.useCase.Patch(context.Background(), db, author.Id, authorPatch)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.NotEqual(author.Name, result.Name)
+	s.NotEqual(author.Birthday.UnixMicro(), result.Birthday.UnixMicro())
+	s.NotEqual(author.Description, result.Description)
+}
+
+func (s *AuthorTestSuite) TestPatchPartial() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	author := s.createAuthor(context.Background(), db)
+	authorPatch := mock.NewAuthor().Patch(nil, nil, author.Birthday)
+
+	result, err := s.useCase.Patch(context.Background(), db, author.Id, authorPatch)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.NotEqual(author.Name, result.Name)
+	s.Equal(author.Birthday.UnixMicro(), result.Birthday.UnixMicro())
+	s.NotEqual(author.Description, result.Description)
+}
+
+func (s *AuthorTestSuite) TestPatchNotFound() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	authorPatch := mock.NewAuthor().Patch(nil, nil, nil)
+
+	result, err := s.useCase.Patch(context.Background(), db, "not-found", authorPatch)
 
 	s.NotNil(err)
 	s.Nil(result)
