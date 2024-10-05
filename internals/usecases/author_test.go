@@ -171,6 +171,27 @@ func (s *AuthorTestSuite) TestPatchNotFound() {
 	s.Nil(result)
 }
 
+func (s *AuthorTestSuite) TestDelete() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	author := s.createAuthor(context.Background(), db)
+
+	err := s.useCase.Delete(context.Background(), db, author.Id)
+	result, resultErr := s.useCase.FindById(context.Background(), db, author.Id)
+
+	s.Nil(err)
+	s.NotNil(resultErr)
+	s.Nil(result)
+}
+
+func (s *AuthorTestSuite) TestDeleteNotFound() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+
+	err := s.useCase.Delete(context.Background(), db, "not-found")
+	s.NotNil(err)
+}
+
 func TestAuthorTestSuit(t *testing.T) {
 	suite.Run(t, new(AuthorTestSuite))
 }

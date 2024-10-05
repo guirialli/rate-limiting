@@ -115,3 +115,15 @@ func (a *Author) Patch(ctx context.Context, db *sql.DB, id string, authorPatch *
 
 	return a.Update(ctx, db, id, authorUpdate)
 }
+
+func (a *Author) Delete(ctx context.Context, db *sql.DB, id string) error {
+	if _, err := a.FindById(ctx, db, id); err != nil {
+		return err
+	}
+
+	_, err := uow.NewTransaction(db, func() (interface{}, error) {
+		_, err := db.ExecContext(ctx, "DELETE FROM authors WHERE id=?", id)
+		return nil, err
+	}).Exec()
+	return err
+}
