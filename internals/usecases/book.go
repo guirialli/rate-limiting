@@ -89,7 +89,7 @@ func (b *Book) Update(ctx context.Context, db *sql.DB, id string, bookUpdate *vo
 			title = ?, pages =?, description = ? ,author_id= ? WHERE id=?`,
 			bookUpdate.Title, bookUpdate.Pages, bookUpdate.Description, bookUpdate.Author, id)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error on updating book: %w", err)
 		}
 
 		book, err := b.FindById(ctx, db, id)
@@ -135,7 +135,7 @@ func (b *Book) Patch(ctx context.Context, db *sql.DB, id string, bookPatch *vos.
 func (b *Book) Delete(ctx context.Context, db *sql.DB, id string) error {
 	transaction := uow.NewTransaction(db, func() (*entity.Book, error) {
 		if _, err := db.ExecContext(ctx, "DELETE FROM books where id=?", id); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error on delete book: %w", err)
 		}
 		return nil, nil
 	})
