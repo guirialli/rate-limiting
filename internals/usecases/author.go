@@ -39,6 +39,20 @@ func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, erro
 	}
 	return authors, nil
 }
+func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Author, error) {
+	rows, err := db.QueryContext(ctx, "SELECT * FROM authors WHERE id=? LIMIT 1", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	rows.Next()
+	author, err := a.scan(rows)
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
+}
 
 func (a *Author) Create(ctx context.Context, db *sql.DB, authorCreate *vos.AuthorCreate) (*entity.Author, error) {
 	author := &entity.Author{

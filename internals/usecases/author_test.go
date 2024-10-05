@@ -64,6 +64,29 @@ func (s *AuthorTestSuite) TestFindAllAuthors() {
 	s.Len(authors, length)
 }
 
+func (s *AuthorTestSuite) TestFindById() {
+	db, err := s.db.InitDatabaseGetConnection(s.fileInit)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	ctx := context.Background()
+	author, err := s.useCase.Create(ctx, db, mock.NewAuthor().Create())
+	if err != nil {
+		panic(err)
+	}
+
+	result, err := s.useCase.FindById(ctx, db, author.Id)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.Equal(author.Name, result.Name)
+	s.Equal(author.Description, result.Description)
+	s.Equal(author.Birthday.UnixMilli(), result.Birthday.UnixMilli())
+	s.Equal(author.Id, result.Id)
+
+}
+
 func TestAuthorTestSuit(t *testing.T) {
 	suite.Run(t, new(AuthorTestSuite))
 }
