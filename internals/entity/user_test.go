@@ -49,6 +49,18 @@ func (s *UserTestSuite) TestNewUserWithInvalidPassword() {
 	}
 }
 
+func (s *UserTestSuite) TestComparePassword() {
+	password := "Test123@@"
+	user, _ := NewUser("test", password)
+	s.Nil(user.ComparePassword(password))
+}
+
+func (s *UserTestSuite) TestComparePasswordWithInvalidPassword() {
+	password := "Test123@@"
+	user, _ := NewUser("test", password+"12")
+	s.NotNil(user.ComparePassword(password))
+}
+
 func TestUserTestSuit(t *testing.T) {
 	suite.Run(t, new(UserTestSuite))
 }
