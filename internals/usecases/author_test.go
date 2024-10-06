@@ -131,6 +131,24 @@ func (s *AuthorTestSuite) TestFindByIdNotFound() {
 func (s *AuthorTestSuite) TestFindByIdWithAuthor() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
+	ctx := context.Background()
+	author := s.createAuthor(ctx, db)
+	book, _ := s.bookUseCase.Create(ctx, db, mock.NewBookMock().CreateWithAuthor(author.Id, nil))
+
+	result, err := s.useCase.FindByIdWithBooks(ctx, db, author.Id, s.bookUseCase)
+
+	s.Nil(err)
+	s.NotNil(result)
+
+	s.Equal(book.Id, result.Books[0].Id)
+	s.Equal(author.Id, result.Books[0].Author)
+	s.Equal(book.Description, result.Books[0].Description)
+	s.Equal(author.Id, result.Author.Id)
+}
+
+func (s *AuthorTestSuite) TestFindByIdWithAuthorNotFound() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
 	result, err := s.useCase.FindByIdWithBooks(context.Background(), db, "test", s.bookUseCase)
 
 	s.NotNil(err)
