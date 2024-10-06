@@ -19,3 +19,9 @@ CREATE TABLE IF NOT EXISTS migrates
     id      int AUTO_INCREMENT primary key,
     version varchar(64)
 );
+CREATE TABLE IF NOT EXISTS users
+(
+  id varchar(255) PRIMARY KEY,
+  username varchar(64) NOT NULL UNIQUE,
+  password TEXT NOT NULL
+);
