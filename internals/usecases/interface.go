@@ -23,6 +23,7 @@ type IAuthor interface {
 	FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, error)
 	FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase *Book) ([]vos.AuthorWithBooks, error)
 	FindById(ctx context.Context, db *sql.DB, id string) (*entity.Author, error)
+	FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase *Book) (*vos.AuthorWithBooks, error)
 	Create(ctx context.Context, db *sql.DB, authorCreate *vos.AuthorCreate) (*entity.Author, error)
 	Patch(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorPatch) (*entity.Author, error)
 	Update(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorUpdate) (*entity.Author, error)

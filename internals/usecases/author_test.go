@@ -70,6 +70,16 @@ func (s *AuthorTestSuite) TestFindAll() {
 	s.Len(authors, length)
 }
 
+func (s *AuthorTestSuite) TestFindAllNoData() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+
+	authors, err := s.useCase.FindAll(context.Background(), db)
+
+	s.Nil(err)
+	s.Len(authors, 0)
+}
+
 func (s *AuthorTestSuite) TestFindAllWithBooks() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
@@ -113,6 +123,15 @@ func (s *AuthorTestSuite) TestFindByIdNotFound() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
 	result, err := s.useCase.FindById(context.Background(), db, "not-found")
+
+	s.NotNil(err)
+	s.Nil(result)
+}
+
+func (s *AuthorTestSuite) TestFindByIdWithAuthor() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	result, err := s.useCase.FindByIdWithBooks(context.Background(), db, "test", s.bookUseCase)
 
 	s.NotNil(err)
 	s.Nil(result)

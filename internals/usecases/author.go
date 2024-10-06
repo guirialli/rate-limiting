@@ -77,6 +77,24 @@ func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.A
 	return &author, nil
 }
 
+func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase *Book) (*vos.AuthorWithBooks, error) {
+	author, err := a.FindById(ctx, db, id)
+	if err != nil {
+		return nil, err
+	}
+
+	books, err := bookUseCase.FindAllByAuthor(ctx, db, author.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	var authorBooks vos.AuthorWithBooks
+	authorBooks.Author = *author
+	authorBooks.Books = books
+
+	return &authorBooks, err
+}
+
 func (a *Author) Create(ctx context.Context, db *sql.DB, authorCreate *vos.AuthorCreate) (*entity.Author, error) {
 	author := &entity.Author{
 		Id:          uuid.NewString(),
