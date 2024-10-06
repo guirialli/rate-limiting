@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS books
     title       varchar(255) NOT NULL,
     pages       int,
     description TEXT,
-    author_id   varchar(255) NOT NULL
+    author_id   varchar(255) NOT NULL /* I removed the author-book relationship for isolated testing. */
 );
 CREATE TABLE IF NOT EXISTS authors (
     id varchar(255) PRIMARY KEY,

@@ -18,3 +18,12 @@ func (b *Book) Create(description *string) *vos.BookCreate {
 		Author:      "test",
 	}
 }
+
+func (b *Book) CreateWithAuthor(author string, description *string) *vos.BookCreate {
+	return &vos.BookCreate{
+		Title:       "test",
+		Pages:       100,
+		Description: description,
+		Author:      author,
+	}
+}

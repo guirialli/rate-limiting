@@ -12,15 +12,17 @@ import (
 
 type BookTestSuite struct {
 	suite.Suite
-	useCase  *Book
-	db       *database.Sqlite
-	fileInit string
+	useCase       *Book
+	db            *database.Sqlite
+	authorUseCase *Author
+	fileInit      string
 }
 
 func (s *BookTestSuite) SetupTest() {
 	db := database.NewSqlite("file::memory:?cache=shared")
 	s.db = db
 	s.useCase = NewBook()
+	s.authorUseCase = NewAuthor()
 	s.fileInit = "../../test/database/init.sql"
 }
 
@@ -68,6 +70,38 @@ func (s *BookTestSuite) TestFindAll() {
 
 }
 
+func (s *BookTestSuite) TestFindAllWithAuthor() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	ctx := context.Background()
+
+	author, _ := s.authorUseCase.Create(ctx, db, mock.NewAuthor().Create(nil))
+	book, _ := s.useCase.Create(ctx, db, mock.NewBookMock().CreateWithAuthor(author.Id, nil))
+
+	result, err := s.useCase.FindAllWithAuthor(ctx, db, s.authorUseCase)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.Equal(author.Id, result[0].Author.Id)
+	s.Equal(book.Id, result[0].Book.Id)
+}
+
+func (s *BookTestSuite) TestFindAllBookByAuthor() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	ctx := context.Background()
+
+	author, _ := s.authorUseCase.Create(ctx, db, mock.NewAuthor().Create(nil))
+	book, _ := s.useCase.Create(ctx, db, mock.NewBookMock().CreateWithAuthor(author.Id, nil))
+
+	result, err := s.useCase.FindAllByAuthor(ctx, db, author.Id)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.Equal(book.Id, result[0].Id)
+	s.Equal(book.Author, result[0].Author)
+}
+
 func (s *BookTestSuite) TestFindById() {
 	db, err := s.db.InitDatabaseGetConnection(s.fileInit)
 	if err != nil {
@@ -90,6 +124,22 @@ func (s *BookTestSuite) TestFindById() {
 	s.Equal(book.Pages, result.Pages)
 	s.Equal(*book.Description, *result.Description)
 	s.Equal(book.Author, result.Author)
+}
+
+func (s *BookTestSuite) TestFindByIdWithAuthor() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	ctx := context.Background()
+
+	author, _ := s.authorUseCase.Create(ctx, db, mock.NewAuthor().Create(nil))
+	book, _ := s.useCase.Create(ctx, db, mock.NewBookMock().CreateWithAuthor(author.Id, nil))
+
+	result, err := s.useCase.FindByIdWithAuthor(ctx, db, book.Id, s.authorUseCase)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.Equal(author.Id, result.Author.Id)
+	s.Equal(book.Id, result.Book.Id)
 }
 
 func (s *BookTestSuite) TestUpdateBook() {

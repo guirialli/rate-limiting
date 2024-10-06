@@ -26,26 +26,52 @@ func (b *Book) scan(row *sql.Rows) (entity.Book, error) {
 	return book, err
 }
 
+func (b *Book) scanRows(rows *sql.Rows) ([]entity.Book, error) {
+	books := make([]entity.Book, 0)
+	for rows.Next() {
+		book, err := b.scan(rows)
+		if err != nil {
+			return books, err
+		}
+		books = append(books, book)
+	}
+
+	return books, nil
+}
+
 func (b *Book) FindAll(ctx context.Context, db *sql.DB) ([]entity.Book, error) {
-	var books []entity.Book
 	rows, err := db.QueryContext(ctx, "SELECT * FROM books")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		book, err := b.scan(rows)
+	return b.scanRows(rows)
+}
+
+func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases *Author) ([]vos.BookWithAuthor, error) {
+	var bookAuthors []vos.BookWithAuthor
+	books, err := b.FindAll(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	for _, book := range books {
+		author, err := authorUseCases.FindById(ctx, db, book.Author)
 		if err != nil {
 			return nil, err
 		}
-		books = append(books, book)
+		bookAuthors = append(bookAuthors, vos.BookWithAuthor{Author: *author, Book: book})
 	}
+	return bookAuthors, err
+}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
+func (b *Book) FindAllByAuthor(ctx context.Context, db *sql.DB, author string) ([]entity.Book, error) {
+	rows, err := db.QueryContext(ctx, "SELECT * FROM books WHERE author_id=?", author)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find book by author: %w", err)
 	}
-	return books, nil
+	defer rows.Close()
+	return b.scanRows(rows)
 }
 
 func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Book, error) {
@@ -58,8 +84,21 @@ func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Boo
 	row.Next()
 	book, err := b.scan(row)
 	return &book, err
-
 }
+
+func (b *Book) FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, authorUseCases *Author) (*vos.BookWithAuthor, error) {
+	book, err := b.FindById(ctx, db, id)
+	if err != nil {
+		return nil, err
+	}
+	author, err := authorUseCases.FindById(ctx, db, book.Author)
+	if err != nil {
+		return nil, err
+	}
+
+	return &vos.BookWithAuthor{Book: *book, Author: *author}, nil
+}
+
 func (b *Book) Create(ctx context.Context, db *sql.DB, bookCreate *vos.BookCreate) (*entity.Book, error) {
 	book := &entity.Book{
 		Id:          uuid.New().String(),
