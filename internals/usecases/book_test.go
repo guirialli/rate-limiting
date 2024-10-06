@@ -2,8 +2,8 @@ package usecases
 
 import (
 	"context"
+	"github.com/guirialli/rater_limit/internals/entity/vos"
 	"github.com/guirialli/rater_limit/internals/infra/database"
-	"github.com/guirialli/rater_limit/internals/vos"
 	"github.com/guirialli/rater_limit/test/mock"
 	"github.com/stretchr/testify/suite"
 	"math/rand/v2"

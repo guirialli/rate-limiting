@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/guirialli/rater_limit/internals/vos"
+	"github.com/guirialli/rater_limit/internals/entity/vos"
 	"time"
 )
 

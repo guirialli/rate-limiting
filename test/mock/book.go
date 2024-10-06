@@ -1,6 +1,8 @@
 package mock
 
-import "github.com/guirialli/rater_limit/internals/vos"
+import (
+	"github.com/guirialli/rater_limit/internals/entity/vos"
+)
 
 type Book struct{}
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/guirialli/rater_limit/internals/entity"
-	"github.com/guirialli/rater_limit/internals/vos"
+	"github.com/guirialli/rater_limit/internals/entity/vos"
 	"github.com/guirialli/rater_limit/pkg/uow"
 )
 
