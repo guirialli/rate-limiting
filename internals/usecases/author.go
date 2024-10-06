@@ -25,14 +25,8 @@ func (a *Author) scan(r *sql.Rows) (entity.Author, error) {
 	return author, err
 }
 
-func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, error) {
+func (a *Author) scanRows(rows *sql.Rows) ([]entity.Author, error) {
 	var authors []entity.Author
-	rows, err := db.QueryContext(ctx, "SELECT * FROM authors")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
 	for rows.Next() {
 		author, err := a.scan(rows)
 		if err != nil {
@@ -41,6 +35,31 @@ func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, erro
 		authors = append(authors, author)
 	}
 	return authors, nil
+}
+func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, error) {
+	rows, err := db.QueryContext(ctx, "SELECT * FROM authors")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return a.scanRows(rows)
+}
+
+func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase *Book) ([]vos.AuthorWithBooks, error) {
+	authors, err := a.FindAll(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	authorsBook := make([]vos.AuthorWithBooks, len(authors))
+	for i, author := range authors {
+		books, err := bookUseCase.FindAllByAuthor(ctx, db, author.Id)
+		if err != nil {
+			return nil, err
+		}
+		authorsBook[i].Author = author
+		authorsBook[i].Books = books
+	}
+	return authorsBook, nil
 }
 
 func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Author, error) {

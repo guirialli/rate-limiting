@@ -15,14 +15,16 @@ import (
 
 type AuthorTestSuite struct {
 	suite.Suite
-	useCase  *Author
-	db       *database.Sqlite
-	fileInit string
+	useCase     *Author
+	bookUseCase *Book
+	db          *database.Sqlite
+	fileInit    string
 }
 
 func (s *AuthorTestSuite) SetupTest() {
 	s.db = database.NewSqlite("file::memory:?cache=shared")
 	s.useCase = NewAuthor()
+	s.bookUseCase = NewBook()
 	s.fileInit = "../../test/database/init.sql"
 }
 
@@ -35,7 +37,7 @@ func (s *AuthorTestSuite) createAuthor(ctx context.Context, db *sql.DB) *entity.
 	return author
 }
 
-func (s *AuthorTestSuite) TestCreateAuthor() {
+func (s *AuthorTestSuite) TestCreate() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
 	ctx := context.Background()
@@ -51,7 +53,7 @@ func (s *AuthorTestSuite) TestCreateAuthor() {
 
 }
 
-func (s *AuthorTestSuite) TestFindAllAuthors() {
+func (s *AuthorTestSuite) TestFindAll() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
 	length := rand.IntN(1000) + 1
@@ -66,6 +68,28 @@ func (s *AuthorTestSuite) TestFindAllAuthors() {
 	s.Nil(err)
 	s.NotNil(authors)
 	s.Len(authors, length)
+}
+
+func (s *AuthorTestSuite) TestFindAllWithBooks() {
+	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
+	defer db.Close()
+	ctx := context.Background()
+	author := s.createAuthor(ctx, db)
+	book, _ := s.bookUseCase.Create(ctx, db, mock.NewBookMock().CreateWithAuthor(author.Id, nil))
+
+	result, err := s.useCase.FindAllWithBooks(ctx, db, s.bookUseCase)
+
+	s.Nil(err)
+	s.NotNil(result)
+	s.Len(result, 1)
+
+	for _, ab := range result {
+		s.Equal(ab.Books[0].Id, book.Id)
+		s.Equal(ab.Books[0].Author, author.Id)
+		s.Equal(ab.Books[0].Description, book.Description)
+		s.Equal(ab.Author.Id, author.Id)
+	}
+
 }
 
 func (s *AuthorTestSuite) TestFindById() {
