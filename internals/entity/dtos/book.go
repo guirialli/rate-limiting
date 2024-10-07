@@ -1,4 +1,4 @@
-package vos
+package dtos
 
 type BookCreate struct {
 	Title       string

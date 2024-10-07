@@ -2,7 +2,7 @@ package usecases
 
 import (
 	"context"
-	"github.com/guirialli/rater_limit/internals/entity/vos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/test/mock"
 	"github.com/stretchr/testify/suite"
@@ -155,7 +155,7 @@ func (s *BookTestSuite) TestUpdateBook() {
 	book, _ := s.useCase.Create(ctx, db, bookCreate)
 
 	description2 := "test2"
-	result, err := s.useCase.Update(ctx, db, book.Id, &vos.BookUpdate{
+	result, err := s.useCase.Update(ctx, db, book.Id, &dtos.BookUpdate{
 		Title:       "test2",
 		Pages:       0,
 		Author:      "test2",
@@ -185,7 +185,7 @@ func (s *BookTestSuite) TestPatchBook() {
 	book, _ := s.useCase.Create(ctx, db, bookCreate)
 
 	title := "test2"
-	result, err := s.useCase.Patch(ctx, db, book.Id, &vos.BookPatch{
+	result, err := s.useCase.Patch(ctx, db, book.Id, &dtos.BookPatch{
 		Title: &title,
 	})
 
@@ -216,6 +216,6 @@ func (s *BookTestSuite) TestDeleteBook() {
 	s.NotNil(err)
 }
 
-func TestBookTestSuit(t *testing.T) {
+func TestBookSuite(t *testing.T) {
 	suite.Run(t, new(BookTestSuite))
 }

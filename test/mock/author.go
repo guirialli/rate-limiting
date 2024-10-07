@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/guirialli/rater_limit/internals/entity/vos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"time"
 )
 
@@ -11,16 +11,16 @@ func NewAuthor() *Author {
 	return &Author{}
 }
 
-func (a *Author) Create(description *string) *vos.AuthorCreate {
+func (a *Author) Create(description *string) *dtos.AuthorCreate {
 	birthday := time.Now()
-	return &vos.AuthorCreate{
+	return &dtos.AuthorCreate{
 		Name:        "Test Author",
 		Description: description,
 		Birthday:    &birthday,
 	}
 }
 
-func (a *Author) Patch(name, description *string, birthday *time.Time) *vos.AuthorPatch {
+func (a *Author) Patch(name, description *string, birthday *time.Time) *dtos.AuthorPatch {
 	if name == nil {
 		n := "test patch"
 		name = &n
@@ -34,7 +34,7 @@ func (a *Author) Patch(name, description *string, birthday *time.Time) *vos.Auth
 		description = &d
 	}
 
-	return &vos.AuthorPatch{
+	return &dtos.AuthorPatch{
 		Name:        name,
 		Birthday:    birthday,
 		Description: description,

@@ -3,8 +3,9 @@ package usecases
 import (
 	"context"
 	"database/sql"
+	"github.com/go-chi/jwtauth"
 	"github.com/guirialli/rater_limit/internals/entity"
-	vos "github.com/guirialli/rater_limit/internals/entity/vos"
+	vos "github.com/guirialli/rater_limit/internals/entity/dtos"
 )
 
 type IBook interface {
@@ -28,4 +29,10 @@ type IAuthor interface {
 	Patch(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorPatch) (*entity.Author, error)
 	Update(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorUpdate) (*entity.Author, error)
 	Delete(ctx context.Context, db *sql.DB, id string) error
+}
+
+type IUser interface {
+	Login(ctx context.Context, db *sql.DB, form *vos.LoginForm) (string, error)
+	Register(ctx context.Context, db *sql.DB, form *vos.RegisterForm) (string, error)
+	NewTokenAuth() *jwtauth.JWTAuth
 }

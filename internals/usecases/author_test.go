@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/guirialli/rater_limit/internals/entity"
-	"github.com/guirialli/rater_limit/internals/entity/vos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/test/mock"
 	"github.com/stretchr/testify/suite"
@@ -163,7 +163,7 @@ func (s *AuthorTestSuite) TestUpdate() {
 	birthday := time.Now()
 	description := "lorem ipsum"
 
-	result, err := s.useCase.Update(ctx, db, author.Id, &vos.AuthorUpdate{
+	result, err := s.useCase.Update(ctx, db, author.Id, &dtos.AuthorUpdate{
 		Name:        "TestUpdate",
 		Birthday:    &birthday,
 		Description: &description,
@@ -181,7 +181,7 @@ func (s *AuthorTestSuite) TestUpdateIdNotFound() {
 	db, _ := s.db.InitDatabaseGetConnection(s.fileInit)
 	defer db.Close()
 
-	result, err := s.useCase.Update(context.Background(), db, "test", &vos.AuthorUpdate{
+	result, err := s.useCase.Update(context.Background(), db, "test", &dtos.AuthorUpdate{
 		Name:        "TestUpdateIdNotFound",
 		Description: nil,
 		Birthday:    nil,

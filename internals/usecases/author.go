@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/guirialli/rater_limit/internals/entity"
-	"github.com/guirialli/rater_limit/internals/entity/vos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/pkg/uow"
 )
 
@@ -45,12 +45,12 @@ func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, erro
 	return a.scanRows(rows)
 }
 
-func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase *Book) ([]vos.AuthorWithBooks, error) {
+func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase *Book) ([]dtos.AuthorWithBooks, error) {
 	authors, err := a.FindAll(ctx, db)
 	if err != nil {
 		return nil, err
 	}
-	authorsBook := make([]vos.AuthorWithBooks, len(authors))
+	authorsBook := make([]dtos.AuthorWithBooks, len(authors))
 	for i, author := range authors {
 		books, err := bookUseCase.FindAllByAuthor(ctx, db, author.Id)
 		if err != nil {
@@ -77,7 +77,7 @@ func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.A
 	return &author, nil
 }
 
-func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase *Book) (*vos.AuthorWithBooks, error) {
+func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase *Book) (*dtos.AuthorWithBooks, error) {
 	author, err := a.FindById(ctx, db, id)
 	if err != nil {
 		return nil, err
@@ -88,14 +88,14 @@ func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, b
 		return nil, err
 	}
 
-	var authorBooks vos.AuthorWithBooks
+	var authorBooks dtos.AuthorWithBooks
 	authorBooks.Author = *author
 	authorBooks.Books = books
 
 	return &authorBooks, err
 }
 
-func (a *Author) Create(ctx context.Context, db *sql.DB, authorCreate *vos.AuthorCreate) (*entity.Author, error) {
+func (a *Author) Create(ctx context.Context, db *sql.DB, authorCreate *dtos.AuthorCreate) (*entity.Author, error) {
 	author := &entity.Author{
 		Id:          uuid.NewString(),
 		Name:        authorCreate.Name,
@@ -115,7 +115,7 @@ func (a *Author) Create(ctx context.Context, db *sql.DB, authorCreate *vos.Autho
 	return author, nil
 }
 
-func (a *Author) Update(ctx context.Context, db *sql.DB, id string, authorUpdate *vos.AuthorUpdate) (*entity.Author, error) {
+func (a *Author) Update(ctx context.Context, db *sql.DB, id string, authorUpdate *dtos.AuthorUpdate) (*entity.Author, error) {
 	return uow.NewTransaction(db, func() (*entity.Author, error) {
 		_, err := db.ExecContext(ctx, "UPDATE authors SET name=?, description=?, birthday=? WHERE id=?",
 			authorUpdate.Name, authorUpdate.Description, authorUpdate.Birthday, id,
@@ -128,7 +128,7 @@ func (a *Author) Update(ctx context.Context, db *sql.DB, id string, authorUpdate
 	}).Exec()
 }
 
-func (a *Author) Patch(ctx context.Context, db *sql.DB, id string, authorPatch *vos.AuthorPatch) (*entity.Author, error) {
+func (a *Author) Patch(ctx context.Context, db *sql.DB, id string, authorPatch *dtos.AuthorPatch) (*entity.Author, error) {
 	author, err := a.FindById(ctx, db, id)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (a *Author) Patch(ctx context.Context, db *sql.DB, id string, authorPatch *
 		authorPatch.Birthday = author.Birthday
 	}
 
-	authorUpdate := &vos.AuthorUpdate{
+	authorUpdate := &dtos.AuthorUpdate{
 		Name:        *authorPatch.Name,
 		Birthday:    authorPatch.Birthday,
 		Description: authorPatch.Description,

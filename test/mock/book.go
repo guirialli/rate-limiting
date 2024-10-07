@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/guirialli/rater_limit/internals/entity/vos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 )
 
 type Book struct{}
@@ -10,8 +10,8 @@ func NewBookMock() *Book {
 	return &Book{}
 }
 
-func (b *Book) Create(description *string) *vos.BookCreate {
-	return &vos.BookCreate{
+func (b *Book) Create(description *string) *dtos.BookCreate {
+	return &dtos.BookCreate{
 		Title:       "test",
 		Pages:       100,
 		Description: description,
@@ -19,8 +19,8 @@ func (b *Book) Create(description *string) *vos.BookCreate {
 	}
 }
 
-func (b *Book) CreateWithAuthor(author string, description *string) *vos.BookCreate {
-	return &vos.BookCreate{
+func (b *Book) CreateWithAuthor(author string, description *string) *dtos.BookCreate {
+	return &dtos.BookCreate{
 		Title:       "test",
 		Pages:       100,
 		Description: description,

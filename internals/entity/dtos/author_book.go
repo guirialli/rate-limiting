@@ -1,4 +1,4 @@
-package vos
+package dtos
 
 import "github.com/guirialli/rater_limit/internals/entity"
 

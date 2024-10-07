@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/guirialli/rater_limit/internals/entity"
-	"github.com/guirialli/rater_limit/internals/entity/vos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/pkg/uow"
 )
 
@@ -49,8 +49,8 @@ func (b *Book) FindAll(ctx context.Context, db *sql.DB) ([]entity.Book, error) {
 	return b.scanRows(rows)
 }
 
-func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases *Author) ([]vos.BookWithAuthor, error) {
-	var bookAuthors []vos.BookWithAuthor
+func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases *Author) ([]dtos.BookWithAuthor, error) {
+	var bookAuthors []dtos.BookWithAuthor
 	books, err := b.FindAll(ctx, db)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases
 		if err != nil {
 			return nil, err
 		}
-		bookAuthors = append(bookAuthors, vos.BookWithAuthor{Author: *author, Book: book})
+		bookAuthors = append(bookAuthors, dtos.BookWithAuthor{Author: *author, Book: book})
 	}
 	return bookAuthors, err
 }
@@ -86,7 +86,7 @@ func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Boo
 	return &book, err
 }
 
-func (b *Book) FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, authorUseCases *Author) (*vos.BookWithAuthor, error) {
+func (b *Book) FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, authorUseCases *Author) (*dtos.BookWithAuthor, error) {
 	book, err := b.FindById(ctx, db, id)
 	if err != nil {
 		return nil, err
@@ -96,10 +96,10 @@ func (b *Book) FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, au
 		return nil, err
 	}
 
-	return &vos.BookWithAuthor{Book: *book, Author: *author}, nil
+	return &dtos.BookWithAuthor{Book: *book, Author: *author}, nil
 }
 
-func (b *Book) Create(ctx context.Context, db *sql.DB, bookCreate *vos.BookCreate) (*entity.Book, error) {
+func (b *Book) Create(ctx context.Context, db *sql.DB, bookCreate *dtos.BookCreate) (*entity.Book, error) {
 	book := &entity.Book{
 		Id:          uuid.New().String(),
 		Title:       bookCreate.Title,
@@ -122,7 +122,7 @@ func (b *Book) Create(ctx context.Context, db *sql.DB, bookCreate *vos.BookCreat
 	return book, nil
 }
 
-func (b *Book) Update(ctx context.Context, db *sql.DB, id string, bookUpdate *vos.BookUpdate) (*entity.Book, error) {
+func (b *Book) Update(ctx context.Context, db *sql.DB, id string, bookUpdate *dtos.BookUpdate) (*entity.Book, error) {
 	transaction := uow.NewTransaction(db, func() (*entity.Book, error) {
 		_, err := db.ExecContext(ctx, `UPDATE books SET 
 			title = ?, pages =?, description = ? ,author_id= ? WHERE id=?`,
@@ -137,12 +137,12 @@ func (b *Book) Update(ctx context.Context, db *sql.DB, id string, bookUpdate *vo
 	return transaction.Exec()
 }
 
-func (b *Book) Patch(ctx context.Context, db *sql.DB, id string, bookPatch *vos.BookPatch) (*entity.Book, error) {
+func (b *Book) Patch(ctx context.Context, db *sql.DB, id string, bookPatch *dtos.BookPatch) (*entity.Book, error) {
 	book, err := b.FindById(ctx, db, id)
 	if err != nil {
 		return nil, err
 	}
-	var bookUpdate vos.BookUpdate
+	var bookUpdate dtos.BookUpdate
 
 	if bookPatch.Title != nil {
 		bookUpdate.Title = *bookPatch.Title
