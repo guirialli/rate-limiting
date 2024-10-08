@@ -91,11 +91,10 @@ func (u *User) Register(ctx context.Context, db *sql.DB, form *dtos.RegisterForm
 }
 
 func (u *User) Login(ctx context.Context, db *sql.DB, form *dtos.LoginForm) (string, error) {
-	msg := "error to login username or password invalid"
 	rows, err := db.QueryContext(ctx, "SELECT id, username, password FROM users WHERE username = ?", form.Username)
 	if err != nil {
 		fmt.Println(err)
-		return "", errors.New(msg)
+		return "", fmt.Errorf("error to get user by username: %w", err)
 	}
 	defer rows.Close()
 
@@ -103,11 +102,11 @@ func (u *User) Login(ctx context.Context, db *sql.DB, form *dtos.LoginForm) (str
 	user, err := u.scan(rows)
 	if err != nil {
 		fmt.Println(err)
-		return "", errors.New(msg)
+		return "", fmt.Errorf("error to get user by username: %w", err)
 	}
 	if err := user.ComparePassword(form.Password); err != nil {
 		fmt.Println(err)
-		return "", errors.New(msg)
+		return "", errors.New("invalid username or password")
 	}
 	return u.genJwt(&user)
 }
