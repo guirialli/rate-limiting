@@ -68,3 +68,29 @@ func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func (a *Author) Create(w http.ResponseWriter, r *http.Request) {
+	var body vos.AuthorCreate
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	author, err := a.useCase.Create(r.Context(), a.db, &body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(vos.ResponseJson[entity.Author]{
+		Status: http.StatusCreated,
+		Data:   *author,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
