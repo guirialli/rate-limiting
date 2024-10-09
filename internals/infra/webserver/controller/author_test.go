@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/guirialli/rater_limit/internals/entity"
 	vos "github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/infra/database"
@@ -71,6 +72,26 @@ func (s *SuiteAuthorTest) TestGetAllBook() {
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&authors)
 	s.NoError(err)
 	s.Len(authors.Data, length)
+}
+
+func (s *SuiteAuthorTest) TestGetBook() {
+	req, _ := http.NewRequest("GET", "/authors/{id}", nil)
+	req.Header.Set("Content-Type", "application/json")
+	author := s.create()
+	w := httptest.NewRecorder()
+	rCtx := chi.NewRouteContext()
+	rCtx.URLParams.Add("id", author.Id)
+
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+	var result vos.ResponseJson[entity.Author]
+	s.author.GetById(w, req)
+
+	s.Equal(w.Code, http.StatusOK)
+	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
+	s.NoError(err)
+	s.NotNil(result.Data)
+	s.Equal(result.Data.Id, author.Id)
+	s.Equal(result.Data.Name, author.Name)
 }
 
 func TestAuthorSuite(t *testing.T) {

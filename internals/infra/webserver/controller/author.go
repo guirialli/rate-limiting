@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/guirialli/rater_limit/internals/entity"
 	vos "github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/usecases"
@@ -36,6 +37,31 @@ func (a *Author) GetAll(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(vos.ResponseJson[[]entity.Author]{
 		Status: http.StatusOK,
 		Data:   authors,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+
+	author, err := a.useCase.FindById(r.Context(), a.db, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(vos.ResponseJson[entity.Author]{
+		Status: http.StatusOK,
+		Data:   *author,
 	})
 
 	if err != nil {
