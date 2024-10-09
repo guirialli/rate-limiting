@@ -17,8 +17,9 @@ import (
 
 type SuiteAuthTest struct {
 	suite.Suite
-	auth *Auth
-	init string
+	auth    *Auth
+	useCase usecases.IUser
+	init    string
 }
 
 func (s *SuiteAuthTest) SetupSuite() {
@@ -29,6 +30,7 @@ func (s *SuiteAuthTest) SetupTest() {
 	fmt.Println("---------------------------------")
 	db, _ := database.NewSqlite("file::memory:?cache=shared").InitDatabaseGetConnection(s.init)
 	user, _ := usecases.NewUser("12", 10, 's')
+	s.useCase = user
 	s.auth = NewAuth(user, db)
 }
 
@@ -45,7 +47,7 @@ func (s *SuiteAuthTest) mockUser() *dtos.RegisterForm {
 		Username: "test1",
 		Password: "TestA!@#1@@",
 	}
-	_, err := s.auth.userUseCase.Register(context.Background(), s.auth.db, user)
+	_, err := s.useCase.Register(context.Background(), s.auth.db, user)
 	if err != nil {
 		panic(err)
 	}

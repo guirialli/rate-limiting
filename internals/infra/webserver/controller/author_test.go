@@ -1,0 +1,78 @@
+package controller
+
+import (
+	"bytes"
+	"context"
+	"database/sql"
+	"encoding/json"
+	"github.com/guirialli/rater_limit/internals/entity"
+	vos "github.com/guirialli/rater_limit/internals/entity/dtos"
+	"github.com/guirialli/rater_limit/internals/infra/database"
+	"github.com/guirialli/rater_limit/internals/usecases"
+	"github.com/guirialli/rater_limit/test/mock"
+	"github.com/stretchr/testify/suite"
+	"math/rand/v2"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+type SuiteAuthorTest struct {
+	suite.Suite
+	author      *Author
+	useCase     usecases.IAuthor
+	bookUseCase usecases.IBook
+	init        string
+	db          *sql.DB
+}
+
+func (s *SuiteAuthorTest) create() *entity.Author {
+	author, err := s.useCase.Create(context.Background(), s.db, mock.NewAuthor().Create(nil))
+	if err != nil {
+		panic(err)
+	}
+	return author
+}
+
+func (s *SuiteAuthorTest) SetupSuite() {
+	s.init = "../../../../test/database/init.sql"
+}
+
+func (s *SuiteAuthorTest) SetupTest() {
+	db, _ := database.NewSqlite("file::memory:?cache=shared").InitDatabaseGetConnection(s.init)
+	author := usecases.NewAuthor()
+	book := usecases.NewBook()
+
+	s.db = db
+	s.bookUseCase = book
+	s.useCase = author
+	s.author = NewAuthor(db, author, book)
+}
+
+func (s *SuiteAuthorTest) TestSetup() {
+	s.NotNil(s.db)
+	s.NotNil(s.author)
+	s.NotNil(s.bookUseCase)
+	s.NotNil(s.author)
+}
+
+func (s *SuiteAuthorTest) TestGetAllBook() {
+	length := rand.IntN(1000) + 1
+	for i := 0; i < length; i++ {
+		s.create()
+	}
+	var authors vos.ResponseJson[[]entity.Author]
+	req, _ := http.NewRequest("GET", "/authors", nil)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	s.author.GetAll(w, req)
+
+	s.Equal(w.Code, http.StatusOK)
+	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&authors)
+	s.NoError(err)
+	s.Len(authors.Data, length)
+}
+
+func TestAuthorSuite(t *testing.T) {
+	suite.Run(t, new(SuiteAuthorTest))
+}

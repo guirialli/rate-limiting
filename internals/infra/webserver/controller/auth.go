@@ -11,11 +11,11 @@ import (
 )
 
 type Auth struct {
-	userUseCase *usecases.User
+	userUseCase usecases.IUser
 	db          *sql.DB
 }
 
-func NewAuth(userUseCase *usecases.User, db *sql.DB) *Auth {
+func NewAuth(userUseCase usecases.IUser, db *sql.DB) *Auth {
 	return &Auth{
 		userUseCase: userUseCase,
 		db:          db,
