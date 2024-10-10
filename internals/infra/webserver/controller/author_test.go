@@ -68,45 +68,65 @@ func (s *SuiteAuthorTest) TestGetAllBook() {
 	w := httptest.NewRecorder()
 	s.author.GetAll(w, req)
 
-	s.Equal(w.Code, http.StatusOK)
+	s.Equal(http.StatusOK, w.Code)
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&authors)
 	s.NoError(err)
 	s.Len(authors.Data, length)
 }
 
 func (s *SuiteAuthorTest) TestGetBook() {
-	req, _ := http.NewRequest("GET", "/authors/{id}", nil)
-	req.Header.Set("Content-Type", "application/json")
 	author := s.create()
-	w := httptest.NewRecorder()
-	rCtx := chi.NewRouteContext()
-	rCtx.URLParams.Add("id", author.Id)
+	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound}
+	ids := []string{author.Id, "", "123"}
 
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
-	var result dtos.ResponseJson[entity.Author]
-	s.author.GetById(w, req)
+	for i, id := range ids {
+		req, _ := http.NewRequest("GET", "/authors/{id}", nil)
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
 
-	s.Equal(w.Code, http.StatusOK)
-	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
-	s.NoError(err)
-	s.NotNil(result.Data)
-	s.Equal(result.Data.Id, author.Id)
-	s.Equal(result.Data.Name, author.Name)
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+		var result dtos.ResponseJson[entity.Author]
+		s.author.GetById(w, req)
+
+		s.Equal(status[i], w.Code)
+		if status[i] > 200 && status[i] < 300 {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
+			s.NoError(err)
+			s.NotNil(result.Data)
+			s.Equal(author.Id, result.Data.Id)
+			s.Equal(author.Name, result.Data.Name)
+		}
+
+	}
+
 }
 
 func (s *SuiteAuthorTest) TestCreate() {
+	status := []int{http.StatusCreated, http.StatusBadRequest}
 	var response dtos.ResponseJson[entity.Author]
-	body, _ := json.Marshal(mock.NewAuthor().Create(nil))
-	req, _ := http.NewRequest("POST", "/authors", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	s.author.Create(w, req)
+	for i, st := range status {
+		var body []byte
+		if i == 0 {
+			body, _ = json.Marshal(mock.NewAuthor().Create(nil))
+		}
 
-	s.Equal(w.Code, http.StatusCreated)
-	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
-	s.NoError(err)
-	s.NotNil(response.Data)
-	s.NotEmpty(response.Data.Id)
+		req, _ := http.NewRequest("POST", "/authors", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		s.author.Create(w, req)
+
+		s.Equal(st, w.Code)
+		if st > 200 && st < 300 {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
+			s.NoError(err)
+			s.NotNil(response.Data)
+			s.NotEmpty(response.Data.Id)
+		}
+
+	}
+
 }
 
 func TestAuthorSuite(t *testing.T) {
