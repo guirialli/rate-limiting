@@ -44,6 +44,27 @@ func (a *Author) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *Author) GetAllWithBooks(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	authors, err := a.useCase.FindAllWithBooks(ctx, a.db, a.bookUseCase)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(dtos.ResponseJson[[]dtos.AuthorWithBooks]{
+		Status: http.StatusOK,
+		Data:   authors,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

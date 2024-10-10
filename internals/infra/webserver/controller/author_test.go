@@ -35,6 +35,14 @@ func (s *SuiteAuthorTest) create() *entity.Author {
 	return author
 }
 
+func (s *SuiteAuthorTest) createBook(authorId string) *entity.Book {
+	book, err := s.bookUseCase.Create(context.Background(), s.db, mock.NewBookMock().CreateWithAuthor(authorId, nil))
+	if err != nil {
+		panic(err)
+	}
+	return book
+}
+
 func (s *SuiteAuthorTest) SetupSuite() {
 	s.init = "../../../../test/database/init.sql"
 }
@@ -72,6 +80,25 @@ func (s *SuiteAuthorTest) TestGetAllBook() {
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&authors)
 	s.NoError(err)
 	s.Len(authors.Data, length)
+}
+
+func (s *SuiteAuthorTest) TestGetAllWithBooks() {
+	author := s.create()
+	book := s.createBook(author.Id)
+	var result dtos.ResponseJson[[]dtos.AuthorWithBooks]
+
+	req, _ := http.NewRequest("GET", "/authors/books", nil)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	s.author.GetAllWithBooks(w, req)
+
+	s.Equal(http.StatusOK, w.Code)
+	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
+	s.NoError(err)
+	for _, ab := range result.Data {
+		s.Equal(author.Id, ab.Author.Id)
+		s.Equal(book.Id, ab.Books[0].Id)
+	}
 }
 
 func (s *SuiteAuthorTest) TestGetBook() {

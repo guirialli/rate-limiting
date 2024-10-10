@@ -45,7 +45,7 @@ func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, erro
 	return a.scanRows(rows)
 }
 
-func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase *Book) ([]dtos.AuthorWithBooks, error) {
+func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase IBook) ([]dtos.AuthorWithBooks, error) {
 	authors, err := a.FindAll(ctx, db)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.A
 	return &author, nil
 }
 
-func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase *Book) (*dtos.AuthorWithBooks, error) {
+func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase IBook) (*dtos.AuthorWithBooks, error) {
 	author, err := a.FindById(ctx, db, id)
 	if err != nil {
 		return nil, err
