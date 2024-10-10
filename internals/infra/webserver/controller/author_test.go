@@ -208,6 +208,24 @@ func (s *SuiteAuthorTest) TestPatch() {
 
 }
 
+func (s *SuiteAuthorTest) TestDelete() {
+	author := s.create()
+	ids := []string{author.Id, "", "123"}
+	status := []int{http.StatusNoContent, http.StatusBadRequest, http.StatusNotFound}
+	for i, id := range ids {
+		req, _ := http.NewRequest("DELETE", "/authors/{id}", http.NoBody)
+		req.Header.Set("Content-Type", "application/json")
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+		w := httptest.NewRecorder()
+
+		s.author.Delete(w, req)
+
+		s.Equal(status[i], w.Code)
+	}
+}
+
 func TestAuthorSuite(t *testing.T) {
 	suite.Run(t, new(SuiteAuthorTest))
 }

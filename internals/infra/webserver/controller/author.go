@@ -102,6 +102,7 @@ func (a *Author) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "id is required", http.StatusBadRequest)
 		return
 	}
+
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -136,6 +137,7 @@ func (a *Author) Patch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "id is required", http.StatusBadRequest)
 		return
 	}
+
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -157,6 +159,28 @@ func (a *Author) Patch(w http.ResponseWriter, r *http.Request) {
 		Status: http.StatusOK,
 		Data:   *author,
 	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (a *Author) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+
+	err := a.useCase.Delete(r.Context(), a.db, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+	err = json.NewEncoder(w).Encode([]byte{})
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
