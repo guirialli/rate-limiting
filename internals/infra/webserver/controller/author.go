@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/guirialli/rater_limit/internals/entity"
-	vos "github.com/guirialli/rater_limit/internals/entity/dtos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/usecases"
 	"net/http"
 )
@@ -34,7 +34,7 @@ func (a *Author) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(vos.ResponseJson[[]entity.Author]{
+	err = json.NewEncoder(w).Encode(dtos.ResponseJson[[]entity.Author]{
 		Status: http.StatusOK,
 		Data:   authors,
 	})
@@ -59,7 +59,7 @@ func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(vos.ResponseJson[entity.Author]{
+	err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Author]{
 		Status: http.StatusOK,
 		Data:   *author,
 	})
@@ -70,7 +70,7 @@ func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Author) Create(w http.ResponseWriter, r *http.Request) {
-	var body vos.AuthorCreate
+	var body dtos.AuthorCreate
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,8 +85,42 @@ func (a *Author) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(vos.ResponseJson[entity.Author]{
+	err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Author]{
 		Status: http.StatusCreated,
+		Data:   *author,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (a *Author) Update(w http.ResponseWriter, r *http.Request) {
+	var body dtos.AuthorUpdate
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	} else if _, err = a.useCase.FindById(r.Context(), a.db, id); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	author, err := a.useCase.Update(r.Context(), a.db, id, &body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Author]{
+		Status: http.StatusOK,
 		Data:   *author,
 	})
 
