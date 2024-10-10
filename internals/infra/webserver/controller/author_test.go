@@ -168,6 +168,46 @@ func (s *SuiteAuthorTest) TestUpdate() {
 
 }
 
+func (s *SuiteAuthorTest) TestPatch() {
+	author := s.create()
+	var response dtos.ResponseJson[entity.Author]
+	newName := author.Name + "2"
+	newBirthDay := author.Birthday.Add(1000)
+	newDescription := "bla"
+	update := dtos.AuthorPatch{
+		Name:        &newName,
+		Birthday:    &newBirthDay,
+		Description: &newDescription,
+	}
+	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest}
+	bodyS := []interface{}{update, update, update, ""}
+	ids := []string{author.Id, "", "123", author.Id}
+
+	for i, id := range ids {
+		body, _ := json.Marshal(bodyS[i])
+		req, _ := http.NewRequest("PATCH", "/authors/{id}", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+
+		s.author.Patch(w, req)
+
+		s.Equal(status[i], w.Code)
+		if status[i] > 200 && status[i] < 300 {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
+			s.NoError(err)
+			s.NotNil(response.Data)
+			s.Equal(author.Id, response.Data.Id)
+			s.NotEqual(author.Name, response.Data.Name)
+		}
+
+	}
+
+}
+
 func TestAuthorSuite(t *testing.T) {
 	suite.Run(t, new(SuiteAuthorTest))
 }
