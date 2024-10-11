@@ -9,6 +9,7 @@ package main
 import (
 	"database/sql"
 	"github.com/google/wire"
+	"github.com/guirialli/rater_limit/config"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/controller"
 	"github.com/guirialli/rater_limit/internals/usecases"
 )
@@ -29,7 +30,8 @@ func NewBookController(db *sql.DB) *controller.Book {
 	return controllerBook
 }
 
-func NewAuthController(db *sql.DB, user usecases.IUser) *controller.Auth {
+func NewAuthController(db *sql.DB) *controller.Auth {
+	user := newUser()
 	auth := controller.NewAuth(db, user)
 	return auth
 }
@@ -39,3 +41,17 @@ func NewAuthController(db *sql.DB, user usecases.IUser) *controller.Auth {
 var setAuthorUseCaseDependency = wire.NewSet(usecases.NewAuthor, wire.Bind(new(usecases.IAuthor), new(*usecases.Author)))
 
 var setBookUseCaseDependency = wire.NewSet(usecases.NewBook, wire.Bind(new(usecases.IBook), new(*usecases.Book)))
+
+var setUserUseCaseDependency = wire.NewSet(
+	newUser, wire.Bind(new(usecases.IUser), new(*usecases.User)),
+)
+
+// This function create a user use case without errors
+func newUser() *usecases.User {
+	jwtConfig := config.LoadJwtConfig()
+	user, err := usecases.NewUser(jwtConfig.Secret, jwtConfig.ExpireIn, jwtConfig.UnitTime)
+	if err != nil {
+		panic(err)
+	}
+	return user
+}
