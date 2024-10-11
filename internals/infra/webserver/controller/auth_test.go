@@ -31,7 +31,7 @@ func (s *SuiteAuthTest) SetupTest() {
 	db, _ := database.NewSqlite("file::memory:?cache=shared").InitDatabaseGetConnection(s.init)
 	user, _ := usecases.NewUser("12", 10, 's')
 	s.useCase = user
-	s.auth = NewAuth(user, db)
+	s.auth = NewAuth(db, user)
 }
 
 func (s *SuiteAuthTest) TearDownTest() {

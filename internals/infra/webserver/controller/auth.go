@@ -15,7 +15,7 @@ type Auth struct {
 	db          *sql.DB
 }
 
-func NewAuth(userUseCase usecases.IUser, db *sql.DB) *Auth {
+func NewAuth(db *sql.DB, userUseCase usecases.IUser) *Auth {
 	return &Auth{
 		userUseCase: userUseCase,
 		db:          db,
