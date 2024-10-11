@@ -31,21 +31,21 @@ func NewServer(
 
 func (s *Server) useRouters(r *chi.Mux, routers []router.Router) error {
 	for _, ro := range routers {
-		if err := s.validHttpMethod(ro.HttpMethod); err != nil {
-			return err
-		}
-		method := strings.ToUpper(ro.HttpMethod)
-		if method == "GET" {
+		switch strings.ToUpper(ro.HttpMethod) {
+		case "GET":
 			r.Get(ro.Path, ro.Handlers)
-		} else if method == "POST" {
+		case "POST":
 			r.Post(ro.Path, ro.Handlers)
-		} else if method == "PUT" {
+		case "PUT":
 			r.Put(ro.Path, ro.Handlers)
-		} else if method == "PATCH" {
+		case "PATCH":
 			r.Patch(ro.Path, ro.Handlers)
-		} else if method == "DELETE" {
+		case "DELETE":
 			r.Delete(ro.Path, ro.Handlers)
+		default:
+			return fmt.Errorf("invalid http method: %s", ro.HttpMethod)
 		}
+
 	}
 	return nil
 }
@@ -62,38 +62,24 @@ func (s *Server) useChiRoute(r *chi.Mux, chiRoutes []router.ChiRoute) {
 			for _, mw := range chiRo.RouterWithMiddlewares.Middlewares {
 				r.Use(mw)
 			}
-
 			for _, ro := range chiRo.RouterWithMiddlewares.Routers {
-				method := strings.ToUpper(ro.HttpMethod)
-				if err := s.validHttpMethod(method); err != nil {
-					fmt.Printf("Fail on add router %s in %s\n", chiRo.Path, ro.Path)
-					panic(err)
-				}
-
-				if method == "GET" {
+				switch strings.ToUpper(ro.HttpMethod) {
+				case "GET":
 					r.Get(ro.Path, ro.Handlers)
-				} else if method == "POST" {
+				case "POST":
 					r.Post(ro.Path, ro.Handlers)
-				} else if method == "PUT" {
+				case "PUT":
 					r.Put(ro.Path, ro.Handlers)
-				} else if method == "PATCH" {
+				case "PATCH":
 					r.Patch(ro.Path, ro.Handlers)
-				} else if method == "DELETE" {
+				case "DELETE":
 					r.Delete(ro.Path, ro.Handlers)
+				default:
+					panic(fmt.Errorf("invalid http method: %s", ro.HttpMethod))
 				}
 			}
 		})
 	}
-}
-
-func (s *Server) validHttpMethod(method string) error {
-	methodUpper := strings.ToUpper(method)
-	if methodUpper == "GET" || methodUpper == "POST" ||
-		methodUpper == "PUT" || methodUpper == "PATCH" ||
-		methodUpper == "DELETE" {
-		return nil
-	}
-	return fmt.Errorf("invalid http method: %s", method)
 }
 
 func (s *Server) Start() error {
