@@ -92,7 +92,7 @@ func (s *SuiteBookTest) TestGetAllWithAuthor() {
 	req, _ := http.NewRequest("GET", "/books/author", nil)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-	s.book.GetAllWithAuthors(w, req)
+	s.book.GetAllWithAuthor(w, req)
 
 	s.Equal(http.StatusOK, w.Code)
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
@@ -127,6 +127,33 @@ func (s *SuiteBookTest) TestGetById() {
 
 	}
 
+}
+
+func (s *SuiteBookTest) TestGetByIdWithAuthor() {
+	book, author := s.create()
+	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound}
+	ids := []string{book.Id, "", "123"}
+
+	for i, id := range ids {
+		req, _ := http.NewRequest("GET", "/books/{id}/author/", nil)
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+		var result dtos.ResponseJson[dtos.BookWithAuthor]
+		s.book.GetByIdWithAuthor(w, req)
+
+		s.Equal(status[i], w.Code)
+		if s.isSuccessReq(status[i]) {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
+			s.NoError(err)
+			s.NotNil(result.Data)
+			s.Equal(author.Id, result.Data.Author.Id)
+			s.Equal(book.Id, result.Data.Book.Id)
+		}
+	}
 }
 
 func (s *SuiteBookTest) TestCreate() {

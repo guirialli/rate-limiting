@@ -83,6 +83,29 @@ func (b *Book) GetById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (b *Book) GetByIdWithAuthor(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+
+	book, err := b.useCase.FindByIdWithAuthor(r.Context(), b.db, id, b.authorUseCase)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(dtos.ResponseJson[dtos.BookWithAuthor]{
+		Status: http.StatusOK,
+		Data:   *book,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func (b *Book) Create(w http.ResponseWriter, r *http.Request) {
 	var body dtos.BookCreate
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
