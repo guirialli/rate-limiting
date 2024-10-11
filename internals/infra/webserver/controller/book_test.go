@@ -120,19 +120,99 @@ func (s *SuiteBookTest) TestCreate() {
 			body, _ = json.Marshal(mock.NewAuthor().Create(nil))
 		}
 
-		req, _ := http.NewRequest("POST", "/authors", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/books", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		s.book.Create(w, req)
 
 		s.Equal(st, w.Code)
-		if st >= 200 && st < 300 {
+		if s.isSuccessReq(st) {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 			s.NoError(err)
 			s.NotNil(response.Data)
 			s.NotEmpty(response.Data.Id)
 		}
 	}
+}
+
+func (s *SuiteBookTest) TestUpdate() {
+	book, _ := s.create()
+	var response dtos.ResponseJson[entity.Book]
+	newDescription := "bla"
+	update := dtos.BookUpdate{
+		Title:       book.Title + "1",
+		Pages:       book.Pages + 1,
+		Description: &newDescription,
+	}
+	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest}
+	bodyS := []interface{}{update, update, update, ""}
+	ids := []string{book.Id, "", "123", book.Id}
+
+	for i, id := range ids {
+		body, _ := json.Marshal(bodyS[i])
+		req, _ := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+
+		s.book.Update(w, req)
+
+		s.Equal(status[i], w.Code)
+		if s.isSuccessReq(status[i]) {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
+			s.NoError(err)
+			s.NotNil(response.Data)
+			s.Equal(book.Id, response.Data.Id)
+			s.NotEqual(book.Title, response.Data.Title)
+			s.NotEqual(book.Pages, response.Data.Pages)
+		}
+
+	}
+
+}
+
+func (s *SuiteBookTest) TestPatch() {
+	book, _ := s.create()
+	var response dtos.ResponseJson[entity.Book]
+	newTitle := book.Title + "1"
+	newDescription := "bla"
+	newPages := book.Pages + 1
+	update := dtos.BookPatch{
+		Title:       &newTitle,
+		Pages:       &newPages,
+		Description: &newDescription,
+	}
+	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest}
+	bodyS := []interface{}{update, update, update, ""}
+	ids := []string{book.Id, "", "123", book.Id}
+
+	for i, id := range ids {
+		body, _ := json.Marshal(bodyS[i])
+		req, _ := http.NewRequest("PATCH", "/books/{id}", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+
+		s.book.Path(w, req)
+
+		s.Equal(status[i], w.Code)
+		if s.isSuccessReq(status[i]) {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
+			s.NoError(err)
+			s.NotNil(response.Data)
+			s.Equal(book.Id, response.Data.Id)
+			s.NotEqual(book.Title, response.Data.Title)
+			s.NotEqual(book.Pages, response.Data.Pages)
+		}
+
+	}
+
 }
 
 func TestBookSuite(t *testing.T) {
