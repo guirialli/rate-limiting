@@ -41,6 +41,24 @@ func (b *Book) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (b *Book) GetAllWithAuthor(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	books, err := b.useCase.FindAllWithAuthor(ctx, b.db, b.authorUseCase)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(dtos.ResponseJson[[]dtos.BookWithAuthor]{
+		Status: http.StatusOK,
+		Data:   books,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func (b *Book) GetById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -145,14 +163,14 @@ func (b *Book) Path(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *Book) Delete(w http.ResponseWriter, r *http.Request) {
+func (b *Book) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		http.Error(w, "id is required", http.StatusBadRequest)
 		return
 	}
 
-	if err := a.useCase.Delete(r.Context(), a.db, id); err != nil {
+	if err := b.useCase.Delete(r.Context(), b.db, id); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

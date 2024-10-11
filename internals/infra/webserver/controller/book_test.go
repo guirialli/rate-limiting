@@ -85,6 +85,24 @@ func (s *SuiteBookTest) TestGetAll() {
 	s.Len(response.Data, length)
 }
 
+func (s *SuiteBookTest) TestGetAllWithAuthor() {
+	book, author := s.create()
+	var result dtos.ResponseJson[[]dtos.BookWithAuthor]
+
+	req, _ := http.NewRequest("GET", "/books/author", nil)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	s.book.GetAllWithAuthors(w, req)
+
+	s.Equal(http.StatusOK, w.Code)
+	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
+	s.NoError(err)
+	for _, ab := range result.Data {
+		s.Equal(author.Id, ab.Author.Id)
+		s.Equal(book.Id, ab.Book.Id)
+	}
+}
+
 func (s *SuiteBookTest) TestGetById() {
 	book, _ := s.create()
 	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound}
