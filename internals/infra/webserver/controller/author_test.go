@@ -118,7 +118,7 @@ func (s *SuiteAuthorTest) TestGetById() {
 		s.author.GetById(w, req)
 
 		s.Equal(status[i], w.Code)
-		if status[i] > 200 && status[i] < 300 {
+		if status[i] >= 200 && status[i] < 300 {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 			s.NoError(err)
 			s.NotNil(result.Data)
@@ -148,7 +148,7 @@ func (s *SuiteAuthorTest) TestGetByIdWithBooks() {
 		s.author.GetByIdWithBooks(w, req)
 
 		s.Equal(status[i], w.Code)
-		if status[i] > 200 && status[i] < 300 {
+		if status[i] >= 200 && status[i] < 300 {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 			s.NoError(err)
 			s.NotNil(result.Data)
@@ -173,7 +173,7 @@ func (s *SuiteAuthorTest) TestCreate() {
 		s.author.Create(w, req)
 
 		s.Equal(st, w.Code)
-		if st > 200 && st < 300 {
+		if st >= 200 && st < 300 {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 			s.NoError(err)
 			s.NotNil(response.Data)
@@ -211,7 +211,7 @@ func (s *SuiteAuthorTest) TestUpdate() {
 		s.author.Update(w, req)
 
 		s.Equal(status[i], w.Code)
-		if status[i] > 200 && status[i] < 300 {
+		if status[i] >= 200 && status[i] < 300 {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 			s.NoError(err)
 			s.NotNil(response.Data)
@@ -251,7 +251,7 @@ func (s *SuiteAuthorTest) TestPatch() {
 		s.author.Patch(w, req)
 
 		s.Equal(status[i], w.Code)
-		if status[i] > 200 && status[i] < 300 {
+		if status[i] >= 200 && status[i] < 300 {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 			s.NoError(err)
 			s.NotNil(response.Data)

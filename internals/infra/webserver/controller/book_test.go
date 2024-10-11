@@ -5,8 +5,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/guirialli/rater_limit/internals/entity"
-	vos "github.com/guirialli/rater_limit/internals/entity/dtos"
+	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/internals/usecases"
 	"github.com/guirialli/rater_limit/test/mock"
@@ -48,6 +49,10 @@ func (s *SuiteBookTest) TestSetup() {
 	s.NotNil(s.book)
 }
 
+func (s *SuiteBookTest) isSuccessReq(st int) bool {
+	return st >= 200 && st < 300
+}
+
 func (s *SuiteBookTest) create() (*entity.Book, *entity.Author) {
 	ctx := context.Background()
 	author, err := s.authorUseCase.Create(ctx, s.db, mock.NewAuthor().Create(nil))
@@ -67,7 +72,7 @@ func (s *SuiteBookTest) TestGetAll() {
 	for i := 0; i < length; i++ {
 		s.create()
 	}
-	var response vos.ResponseJson[[]entity.Book]
+	var response dtos.ResponseJson[[]entity.Book]
 	req, _ := http.NewRequest("GET", "/books", nil)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -76,7 +81,34 @@ func (s *SuiteBookTest) TestGetAll() {
 	s.Equal(http.StatusOK, w.Code)
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 	s.NoError(err)
+	s.Equal(w.Code, response.Status)
 	s.Len(response.Data, length)
+}
+
+func (s *SuiteBookTest) TestGetById() {
+	book, _ := s.create()
+	status := []int{http.StatusOK, http.StatusBadRequest, http.StatusNotFound}
+	ids := []string{book.Id, "", "123"}
+	for i, id := range ids {
+		req, _ := http.NewRequest("GET", "/books/{id}", nil)
+		w := httptest.NewRecorder()
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+		s.book.GetById(w, req)
+		s.Equal(status[i], w.Code)
+
+		if s.isSuccessReq(status[i]) {
+			var response dtos.ResponseJson[entity.Book]
+			err := json.NewDecoder(w.Body).Decode(&response)
+			s.NoError(err)
+			s.NotNil(response.Data)
+			s.Equal(response.Data.Id, book.Id)
+		}
+
+	}
+
 }
 
 func TestBookSuite(t *testing.T) {

@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/guirialli/rater_limit/internals/entity"
 	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/usecases"
@@ -36,4 +37,29 @@ func (b *Book) GetAll(w http.ResponseWriter, r *http.Request) {
 		Status: http.StatusOK,
 		Data:   books,
 	})
+}
+
+func (b *Book) GetById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+
+	author, err := b.useCase.FindById(r.Context(), b.db, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Book]{
+		Status: http.StatusOK,
+		Data:   *author,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
