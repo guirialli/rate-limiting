@@ -10,10 +10,10 @@ import (
 
 type IBook interface {
 	FindAll(ctx context.Context, db *sql.DB) ([]entity.Book, error)
-	FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCase *Author) ([]vos.BookWithAuthor, error)
+	FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCase IAuthor) ([]vos.BookWithAuthor, error)
 	FindAllByAuthor(ctx context.Context, db *sql.DB, author string) ([]entity.Book, error)
 	FindById(ctx context.Context, db *sql.DB, id string) (*entity.Book, error)
-	FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, authorUseCases *Author) (*vos.BookWithAuthor, error)
+	FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, authorUseCases IAuthor) (*vos.BookWithAuthor, error)
 	Create(ctx context.Context, db *sql.DB, bookCreate *vos.BookCreate) (*entity.Book, error)
 	Patch(ctx context.Context, db *sql.DB, id string, bookUpdate *vos.BookPatch) (*entity.Book, error)
 	Update(ctx context.Context, db *sql.DB, id string, bookUpdate *vos.BookUpdate) (*entity.Book, error)
