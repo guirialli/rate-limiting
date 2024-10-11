@@ -111,6 +111,30 @@ func (s *SuiteBookTest) TestGetById() {
 
 }
 
+func (s *SuiteBookTest) TestCreate() {
+	status := []int{http.StatusCreated, http.StatusBadRequest}
+	var response dtos.ResponseJson[entity.Author]
+	for i, st := range status {
+		var body []byte
+		if i == 0 {
+			body, _ = json.Marshal(mock.NewAuthor().Create(nil))
+		}
+
+		req, _ := http.NewRequest("POST", "/authors", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		s.book.Create(w, req)
+
+		s.Equal(st, w.Code)
+		if st >= 200 && st < 300 {
+			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
+			s.NoError(err)
+			s.NotNil(response.Data)
+			s.NotEmpty(response.Data.Id)
+		}
+	}
+}
+
 func TestBookSuite(t *testing.T) {
 	suite.Run(t, new(SuiteBookTest))
 }

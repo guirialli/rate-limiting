@@ -33,10 +33,12 @@ func (b *Book) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(dtos.ResponseJson[[]entity.Book]{
+	if err = json.NewEncoder(w).Encode(dtos.ResponseJson[[]entity.Book]{
 		Status: http.StatusOK,
 		Data:   books,
-	})
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (b *Book) GetById(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +48,7 @@ func (b *Book) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	author, err := b.useCase.FindById(r.Context(), b.db, id)
+	book, err := b.useCase.FindById(r.Context(), b.db, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -54,12 +56,35 @@ func (b *Book) GetById(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Book]{
-		Status: http.StatusOK,
-		Data:   *author,
-	})
 
+	if err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Book]{
+		Status: http.StatusOK,
+		Data:   *book,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (b *Book) Create(w http.ResponseWriter, r *http.Request) {
+	var body dtos.BookCreate
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	book, err := b.useCase.Create(r.Context(), b.db, &body)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	if err = json.NewEncoder(w).Encode(dtos.ResponseJson[entity.Book]{
+		Status: http.StatusCreated,
+		Data:   *book,
+	}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
