@@ -172,6 +172,10 @@ func (b *Book) Patch(ctx context.Context, db *sql.DB, id string, bookPatch *dtos
 }
 
 func (b *Book) Delete(ctx context.Context, db *sql.DB, id string) error {
+	if _, err := b.FindById(ctx, db, id); err != nil {
+		return err
+	}
+
 	transaction := uow.NewTransaction(db, func() (*entity.Book, error) {
 		if _, err := db.ExecContext(ctx, "DELETE FROM books where id=?", id); err != nil {
 			return nil, fmt.Errorf("error on delete book: %w", err)

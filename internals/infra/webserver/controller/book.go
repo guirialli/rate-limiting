@@ -144,3 +144,22 @@ func (b *Book) Path(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func (a *Book) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := a.useCase.Delete(r.Context(), a.db, id); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+	if err := json.NewEncoder(w).Encode([]byte{}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}

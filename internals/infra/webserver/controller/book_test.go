@@ -169,9 +169,7 @@ func (s *SuiteBookTest) TestUpdate() {
 			s.NotEqual(book.Title, response.Data.Title)
 			s.NotEqual(book.Pages, response.Data.Pages)
 		}
-
 	}
-
 }
 
 func (s *SuiteBookTest) TestPatch() {
@@ -210,9 +208,25 @@ func (s *SuiteBookTest) TestPatch() {
 			s.NotEqual(book.Title, response.Data.Title)
 			s.NotEqual(book.Pages, response.Data.Pages)
 		}
-
 	}
+}
 
+func (s *SuiteBookTest) TestDelete() {
+	book, _ := s.create()
+	ids := []string{book.Id, "", "123"}
+	status := []int{http.StatusNoContent, http.StatusBadRequest, http.StatusNotFound}
+	for i, id := range ids {
+		req, _ := http.NewRequest("DELETE", "/books/{id}", http.NoBody)
+		req.Header.Set("Content-Type", "application/json")
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("id", id)
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
+		w := httptest.NewRecorder()
+
+		s.book.Delete(w, req)
+
+		s.Equal(status[i], w.Code)
+	}
 }
 
 func TestBookSuite(t *testing.T) {
