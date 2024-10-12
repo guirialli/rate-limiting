@@ -26,7 +26,7 @@ func (a *Author) scan(r *sql.Rows) (entity.Author, error) {
 }
 
 func (a *Author) scanRows(rows *sql.Rows) ([]entity.Author, error) {
-	var authors []entity.Author
+	authors := make([]entity.Author, 0)
 	for rows.Next() {
 		author, err := a.scan(rows)
 		if err != nil {

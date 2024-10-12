@@ -50,7 +50,7 @@ func (b *Book) FindAll(ctx context.Context, db *sql.DB) ([]entity.Book, error) {
 }
 
 func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases IAuthor) ([]dtos.BookWithAuthor, error) {
-	var bookAuthors []dtos.BookWithAuthor
+	bookAuthors := make([]dtos.BookWithAuthor, 0)
 	books, err := b.FindAll(ctx, db)
 	if err != nil {
 		return nil, err
