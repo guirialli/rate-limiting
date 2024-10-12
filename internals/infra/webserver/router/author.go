@@ -31,7 +31,7 @@ func (a *Author) Use(r *chi.Mux) error {
 
 		r.Post("/", a.Controller.Create)
 		r.Put("/{id}", a.Controller.Update)
-		r.Patch("/{id}", a.Controller.Update)
+		r.Patch("/{id}", a.Controller.Patch)
 		r.Delete("/{id}", a.Controller.Delete)
 	})
 

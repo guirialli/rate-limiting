@@ -31,17 +31,17 @@ func (a *Author) unmarshalBody(r *http.Request) (*dtos.AuthorPatch, error) {
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return nil, err
 	}
-	var birthday time.Time
+	var birthday *time.Time = nil
 	if body.Birthday != nil {
 		dt, err := time.Parse("2006-01-02", *body.Birthday)
 		if err != nil {
 			return nil, err
 		}
-		birthday = dt
+		birthday = &dt
 	}
 	return &dtos.AuthorPatch{
 		Name:        body.Name,
-		Birthday:    &birthday,
+		Birthday:    birthday,
 		Description: body.Description,
 	}, nil
 
