@@ -11,11 +11,11 @@ import (
 )
 
 type Server struct {
-	config  config.WebServer
+	config  *config.WebServer
 	routers []router.UseRouter
 }
 
-func NewServer(config config.WebServer, routers []router.UseRouter) *Server {
+func NewServer(config *config.WebServer, routers []router.UseRouter) *Server {
 	return &Server{
 		config:  config,
 		routers: routers,
@@ -38,7 +38,8 @@ func (s *Server) Start() error {
 		}
 	}
 
-	url := fmt.Sprintf("http://%s:%d", s.config.Ip, s.config.Port)
+	url := fmt.Sprintf("%s:%d", s.config.Ip, s.config.Port)
+	fmt.Printf("Server listen on http://%s\n", url)
 	if err := http.ListenAndServe(url, r); err != nil {
 		return err
 	}

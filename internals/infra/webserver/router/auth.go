@@ -16,7 +16,9 @@ func NewAuth(controller controller.IAuth) *Auth {
 }
 
 func (a *Auth) Use(r *chi.Mux) error {
-	r.Post("/auth/login", a.Controller.Login)
-	r.Post("/auth/register", a.Controller.Register)
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/register", a.Controller.Register)
+		r.Post("/login", a.Controller.Login)
+	})
 	return nil
 }

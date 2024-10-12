@@ -19,13 +19,16 @@ func NewAuthor(controller controller.IAuthor, auth IAuthToken) *Author {
 }
 
 func (a *Author) Use(r *chi.Mux) error {
-	r.Get("/authors", a.Controller.GetAll)
-	r.Get("/authors/books", a.Controller.GetAllWithBooks)
-	r.Get("/authors/{id}", a.Controller.GetById)
-	r.Get("/authors/{id}/books", a.Controller.GetByIdWithBooks)
+
 	r.Route("/authors", func(r chi.Router) {
 		r.Use(jwtauth.Verifier(a.auth.NewTokenAuth()))
 		r.Use(jwtauth.Authenticator)
+
+		r.Get("/", a.Controller.GetAll)
+		r.Get("/books", a.Controller.GetAllWithBooks)
+		r.Get("/{id}", a.Controller.GetById)
+		r.Get("/{id}/books", a.Controller.GetByIdWithBooks)
+
 		r.Post("/", a.Controller.Create)
 		r.Put("/{id}", a.Controller.Update)
 		r.Patch("/{id}", a.Controller.Update)
