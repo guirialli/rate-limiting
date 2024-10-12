@@ -23,6 +23,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer con.Close()
+
 	cfg, err := config.LoadWebServerConfig()
 	if err != nil {
 		panic(err)
