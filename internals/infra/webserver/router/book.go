@@ -32,5 +32,10 @@ func (b *Book) Use(r *chi.Mux) error {
 		r.Patch("/{id}", b.Controller.Update)
 		r.Delete("/{id}", b.Controller.Delete)
 	})
+
+	r.Route("/public/books", func(r chi.Router) {
+		r.Get("/", b.Controller.GetAll)
+		r.Get("/{id}", b.Controller.GetByIdWithAuthor)
+	})
 	return nil
 }
