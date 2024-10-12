@@ -68,7 +68,7 @@ func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases
 func (b *Book) FindAllByAuthor(ctx context.Context, db *sql.DB, author string) ([]entity.Book, error) {
 	rows, err := db.QueryContext(ctx, "SELECT * FROM books WHERE author_id=?", author)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find book by author: %w", err)
+		return nil, fmt.Errorf("failed to find book by author: %s", author)
 	}
 	defer rows.Close()
 	return b.scanRows(rows)

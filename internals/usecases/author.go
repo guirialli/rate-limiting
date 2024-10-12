@@ -65,14 +65,14 @@ func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase I
 func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Author, error) {
 	rows, err := db.QueryContext(ctx, "SELECT * FROM authors WHERE id=? LIMIT 1", id)
 	if err != nil {
-		return nil, fmt.Errorf("error finding author by id: %w", err)
+		return nil, fmt.Errorf("error finding author by id: %s", id)
 	}
 	defer rows.Close()
 
 	rows.Next()
 	author, err := a.scan(rows)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error finding author by id: %s", id)
 	}
 	return &author, nil
 }
@@ -80,7 +80,7 @@ func (a *Author) FindById(ctx context.Context, db *sql.DB, id string) (*entity.A
 func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, bookUseCase IBook) (*dtos.AuthorWithBooks, error) {
 	author, err := a.FindById(ctx, db, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error finding author by id: %s", id)
 	}
 
 	books, err := bookUseCase.FindAllByAuthor(ctx, db, author.Id)
