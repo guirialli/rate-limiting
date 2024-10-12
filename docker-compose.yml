@@ -1,5 +1,5 @@
 services:
-  db:
+  rater_limit_db:
     image: mysql:latest
     ports:
       - "3306:3306"
@@ -11,6 +11,26 @@ services:
       MYSQL_DATABASE: "rater_limit"
     networks:
       - rater_limit_db_network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$password" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
+  rater_limit:
+    container_name: "rater_limit"
+    depends_on:
+      rater_limit_db:
+        condition: service_healthy
+    build: .
+    networks:
+      - rater_limit_db_network
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./cmd/rater_limit/init.sql:/app/init.sql
+      - ./cmd/rater_limit/.env:/app/.env
+
 networks:
   rater_limit_db_network:
     driver: bridge

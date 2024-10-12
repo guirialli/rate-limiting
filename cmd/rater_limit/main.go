@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/guirialli/rater_limit/config"
 	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/router"
@@ -8,14 +9,18 @@ import (
 )
 
 func main() {
+	fmt.Println("Start Rater Limit Application")
 	db, err := database.NewMySql()
 	if err != nil {
 		panic(err)
 	}
-	if err := db.TryConnection(); err != nil {
+
+	err = db.TryConnection()
+	if err != nil {
 		panic(err)
 	}
-	if err := db.InitDatabase("init.sql"); err != nil {
+
+	if err = db.InitDatabase("init.sql"); err != nil {
 		panic(err)
 	}
 
