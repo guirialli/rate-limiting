@@ -158,7 +158,7 @@ func (b *Book) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *Book) Path(w http.ResponseWriter, r *http.Request) {
+func (b *Book) Patch(w http.ResponseWriter, r *http.Request) {
 	var body dtos.BookPatch
 	id := chi.URLParam(r, "id")
 	if id == "" {

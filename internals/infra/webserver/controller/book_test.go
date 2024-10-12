@@ -242,7 +242,7 @@ func (s *SuiteBookTest) TestPatch() {
 		rCtx.URLParams.Add("id", id)
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
 
-		s.book.Path(w, req)
+		s.book.Patch(w, req)
 
 		s.Equal(status[i], w.Code)
 		if s.isSuccessReq(status[i]) {

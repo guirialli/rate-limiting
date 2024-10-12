@@ -11,11 +11,13 @@ import (
 	"github.com/google/wire"
 	"github.com/guirialli/rater_limit/config"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/controller"
+	"github.com/guirialli/rater_limit/internals/infra/webserver/router"
 	"github.com/guirialli/rater_limit/internals/usecases"
 )
 
 // Injectors from wire.go:
 
+// DI
 func NewAuthorController(db *sql.DB) *controller.Author {
 	author := usecases.NewAuthor()
 	book := usecases.NewBook()
@@ -36,8 +38,34 @@ func NewAuthController(db *sql.DB) *controller.Auth {
 	return auth
 }
 
+func NewAuthorRouter(db *sql.DB) *router.Author {
+	author := usecases.NewAuthor()
+	book := usecases.NewBook()
+	controllerAuthor := controller.NewAuthor(db, author, book)
+	user := newUser()
+	routerAuthor := router.NewAuthor(controllerAuthor, user)
+	return routerAuthor
+}
+
+func NewBookRouter(db *sql.DB) *router.Book {
+	book := usecases.NewBook()
+	author := usecases.NewAuthor()
+	controllerBook := controller.NewBook(db, book, author)
+	user := newUser()
+	routerBook := router.NewBook(controllerBook, user)
+	return routerBook
+}
+
+func NewAuthRouter(db *sql.DB) *router.Auth {
+	user := newUser()
+	auth := controller.NewAuth(db, user)
+	routerAuth := router.NewAuth(auth)
+	return routerAuth
+}
+
 // wire.go:
 
+// Use Cases Dependency
 var setAuthorUseCaseDependency = wire.NewSet(usecases.NewAuthor, wire.Bind(new(usecases.IAuthor), new(*usecases.Author)))
 
 var setBookUseCaseDependency = wire.NewSet(usecases.NewBook, wire.Bind(new(usecases.IBook), new(*usecases.Book)))
@@ -46,6 +74,23 @@ var setUserUseCaseDependency = wire.NewSet(
 	newUser, wire.Bind(new(usecases.IUser), new(*usecases.User)),
 )
 
+// controller dependency
+var setAuthorControllerDependency = wire.NewSet(controller.NewAuthor, setBookUseCaseDependency,
+	setAuthorUseCaseDependency, wire.Bind(new(controller.IAuthor), new(*controller.Author)),
+)
+
+var setBookControllerDependency = wire.NewSet(controller.NewBook, setBookUseCaseDependency,
+	setAuthorUseCaseDependency, wire.Bind(new(controller.IBooks), new(*controller.Book)),
+)
+
+var setAuthControllerDependency = wire.NewSet(controller.NewAuth, setUserUseCaseDependency, wire.Bind(new(controller.IAuth), new(*controller.Auth)))
+
+// router dependency
+var setAuthMiddlewareDependency = wire.NewSet(
+	newUser, wire.Bind(new(router.IAuthToken), new(*usecases.User)),
+)
+
+// utils constructors
 // This function create a user use case without errors
 func newUser() *usecases.User {
 	jwtConfig := config.LoadJwtConfig()

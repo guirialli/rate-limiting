@@ -7,7 +7,6 @@ import (
 	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/usecases"
 	"net/http"
-	"net/http/httptest"
 )
 
 type Auth struct {
@@ -50,7 +49,7 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *Auth) Register(w *httptest.ResponseRecorder, r *http.Request) {
+func (a *Auth) Register(w http.ResponseWriter, r *http.Request) {
 	var formRegister dtos.RegisterForm
 	err := json.NewDecoder(r.Body).Decode(&formRegister)
 	if err != nil {
