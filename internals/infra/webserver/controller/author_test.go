@@ -55,7 +55,7 @@ func (s *SuiteAuthorTest) SetupTest() {
 	s.db = db
 	s.bookUseCase = book
 	s.useCase = author
-	s.author = NewAuthor(db, author, book)
+	s.author = NewAuthor(db, author, book, NewUtils())
 }
 
 func (s *SuiteAuthorTest) TestSetup() {
@@ -70,7 +70,7 @@ func (s *SuiteAuthorTest) TestGetAllBook() {
 	for i := 0; i < length; i++ {
 		s.create()
 	}
-	var authors dtos.ResponseJson[[]entity.Author]
+	var authors dtos.ResponseJson[[]dtos.ResponseAuthor]
 	req, _ := http.NewRequest("GET", "/authors", nil)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -96,7 +96,7 @@ func (s *SuiteAuthorTest) TestGetAllWithBooks() {
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 	s.NoError(err)
 	for _, ab := range result.Data {
-		s.Equal(author.Id, ab.Author.Id)
+		s.Equal(author.Id, *ab.Author.Id)
 		s.Equal(book.Id, ab.Books[0].Id)
 	}
 }
@@ -114,7 +114,7 @@ func (s *SuiteAuthorTest) TestGetById() {
 		rCtx.URLParams.Add("id", id)
 
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rCtx))
-		var result dtos.ResponseJson[entity.Author]
+		var result dtos.ResponseJson[dtos.ResponseAuthor]
 		s.author.GetById(w, req)
 
 		s.Equal(status[i], w.Code)
@@ -122,8 +122,8 @@ func (s *SuiteAuthorTest) TestGetById() {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 			s.NoError(err)
 			s.NotNil(result.Data)
-			s.Equal(author.Id, result.Data.Id)
-			s.Equal(author.Name, result.Data.Name)
+			s.Equal(author.Id, *result.Data.Id)
+			s.Equal(author.Name, *result.Data.Name)
 		}
 
 	}
@@ -152,7 +152,7 @@ func (s *SuiteAuthorTest) TestGetByIdWithBooks() {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 			s.NoError(err)
 			s.NotNil(result.Data)
-			s.Equal(author.Id, result.Data.Author.Id)
+			s.Equal(author.Id, *result.Data.Author.Id)
 			s.Equal(book.Id, result.Data.Books[0].Id)
 		}
 	}
@@ -160,11 +160,11 @@ func (s *SuiteAuthorTest) TestGetByIdWithBooks() {
 
 func (s *SuiteAuthorTest) TestCreate() {
 	status := []int{http.StatusCreated, http.StatusBadRequest}
-	var response dtos.ResponseJson[entity.Author]
+	var response dtos.ResponseJson[dtos.ResponseAuthor]
 	for i, st := range status {
 		var body []byte
 		if i == 0 {
-			body, _ = json.Marshal(mock.NewAuthor().Create(nil))
+			body, _ = json.Marshal(mock.NewAuthor().CreateBody(nil))
 		}
 
 		req, _ := http.NewRequest("POST", "/authors", bytes.NewBuffer(body))
@@ -186,11 +186,12 @@ func (s *SuiteAuthorTest) TestCreate() {
 
 func (s *SuiteAuthorTest) TestUpdate() {
 	author := s.create()
-	var response dtos.ResponseJson[entity.Author]
-	newBirthDay := author.Birthday.Add(1000)
+	var response dtos.ResponseJson[dtos.ResponseAuthor]
+	newName := author.Name + "1"
+	newBirthDay := author.Birthday.Add(1000).Format("2006-01-02")
 	newDescription := "bla"
-	update := dtos.AuthorUpdate{
-		Name:        author.Name + "1",
+	update := dtos.AuthorBody{
+		Name:        &newName,
 		Birthday:    &newBirthDay,
 		Description: &newDescription,
 	}
@@ -215,7 +216,7 @@ func (s *SuiteAuthorTest) TestUpdate() {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 			s.NoError(err)
 			s.NotNil(response.Data)
-			s.Equal(author.Id, response.Data.Id)
+			s.Equal(author.Id, *response.Data.Id)
 			s.NotEqual(author.Name, response.Data.Name)
 		}
 
@@ -225,11 +226,11 @@ func (s *SuiteAuthorTest) TestUpdate() {
 
 func (s *SuiteAuthorTest) TestPatch() {
 	author := s.create()
-	var response dtos.ResponseJson[entity.Author]
+	var response dtos.ResponseJson[dtos.ResponseAuthor]
 	newName := author.Name + "2"
-	newBirthDay := author.Birthday.Add(1000)
+	newBirthDay := author.Birthday.Add(1000).Format("2006-01-02")
 	newDescription := "bla"
-	update := dtos.AuthorPatch{
+	update := dtos.AuthorBody{
 		Name:        &newName,
 		Birthday:    &newBirthDay,
 		Description: &newDescription,
@@ -255,7 +256,7 @@ func (s *SuiteAuthorTest) TestPatch() {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&response)
 			s.NoError(err)
 			s.NotNil(response.Data)
-			s.Equal(author.Id, response.Data.Id)
+			s.Equal(author.Id, *response.Data.Id)
 			s.NotEqual(author.Name, response.Data.Name)
 		}
 

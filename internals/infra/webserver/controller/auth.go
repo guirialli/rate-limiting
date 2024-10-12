@@ -12,12 +12,14 @@ import (
 type Auth struct {
 	userUseCase usecases.IUser
 	db          *sql.DB
+	errHandler  IHttpHandlerError
 }
 
-func NewAuth(db *sql.DB, userUseCase usecases.IUser) *Auth {
+func NewAuth(db *sql.DB, userUseCase usecases.IUser, errHandler IHttpHandlerError) *Auth {
 	return &Auth{
 		userUseCase: userUseCase,
 		db:          db,
+		errHandler:  errHandler,
 	}
 }
 
@@ -25,13 +27,13 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	var formLogin dtos.LoginForm
 	err := json.NewDecoder(r.Body).Decode(&formLogin)
 	if err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		a.errHandler.ResponseError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	token, err := a.userUseCase.Login(context.Background(), a.db, &formLogin)
 	if err != nil {
-		http.Error(w, "username or password invalid", http.StatusUnauthorized)
+		a.errHandler.ResponseError(w, "invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
@@ -45,7 +47,7 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.errHandler.ResponseError(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -53,13 +55,13 @@ func (a *Auth) Register(w http.ResponseWriter, r *http.Request) {
 	var formRegister dtos.RegisterForm
 	err := json.NewDecoder(r.Body).Decode(&formRegister)
 	if err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		a.errHandler.ResponseError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	token, err := a.userUseCase.Register(context.Background(), a.db, &formRegister)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		a.errHandler.ResponseError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -73,7 +75,7 @@ func (a *Auth) Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		a.errHandler.ResponseError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/guirialli/rater_limit/internals/entity/dtos"
 	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/internals/usecases"
@@ -27,15 +26,10 @@ func (s *SuiteAuthTest) SetupSuite() {
 }
 
 func (s *SuiteAuthTest) SetupTest() {
-	fmt.Println("---------------------------------")
 	db, _ := database.NewSqlite("file::memory:?cache=shared").InitDatabaseGetConnection(s.init)
 	user, _ := usecases.NewUser("12", 10, 's')
 	s.useCase = user
-	s.auth = NewAuth(db, user)
-}
-
-func (s *SuiteAuthTest) TearDownTest() {
-	fmt.Println("---------------------------------")
+	s.auth = NewAuth(db, user, NewUtils())
 }
 
 func (s *SuiteAuthTest) TestSetup() {

@@ -36,6 +36,7 @@ func (a *Author) scanRows(rows *sql.Rows) ([]entity.Author, error) {
 	}
 	return authors, nil
 }
+
 func (a *Author) FindAll(ctx context.Context, db *sql.DB) ([]entity.Author, error) {
 	rows, err := db.QueryContext(ctx, "SELECT * FROM authors")
 	if err != nil {
@@ -56,7 +57,7 @@ func (a *Author) FindAllWithBooks(ctx context.Context, db *sql.DB, bookUseCase I
 		if err != nil {
 			return nil, err
 		}
-		authorsBook[i].Author = author
+		authorsBook[i].Author = *dtos.ConvertAuthorToAuthorResponse(&author)
 		authorsBook[i].Books = books
 	}
 	return authorsBook, nil
@@ -89,7 +90,7 @@ func (a *Author) FindByIdWithBooks(ctx context.Context, db *sql.DB, id string, b
 	}
 
 	var authorBooks dtos.AuthorWithBooks
-	authorBooks.Author = *author
+	authorBooks.Author = *dtos.ConvertAuthorToAuthorResponse(author)
 	authorBooks.Books = books
 
 	return &authorBooks, err

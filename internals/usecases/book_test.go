@@ -82,7 +82,7 @@ func (s *BookTestSuite) TestFindAllWithAuthor() {
 
 	s.Nil(err)
 	s.NotNil(result)
-	s.Equal(author.Id, result[0].Author.Id)
+	s.Equal(author.Id, *result[0].Author.Id)
 	s.Equal(book.Id, result[0].Book.Id)
 }
 
@@ -138,7 +138,7 @@ func (s *BookTestSuite) TestFindByIdWithAuthor() {
 
 	s.Nil(err)
 	s.NotNil(result)
-	s.Equal(author.Id, result.Author.Id)
+	s.Equal(author.Id, *result.Author.Id)
 	s.Equal(book.Id, result.Book.Id)
 }
 

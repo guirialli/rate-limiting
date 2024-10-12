@@ -39,7 +39,7 @@ func (s *SuiteBookTest) SetupTest() {
 	s.db = db
 	s.useCase = book
 	s.authorUseCase = author
-	s.book = NewBook(s.db, book, author)
+	s.book = NewBook(s.db, book, author, NewUtils())
 }
 
 func (s *SuiteBookTest) TestSetup() {
@@ -98,7 +98,7 @@ func (s *SuiteBookTest) TestGetAllWithAuthor() {
 	err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 	s.NoError(err)
 	for _, ab := range result.Data {
-		s.Equal(author.Id, ab.Author.Id)
+		s.Equal(author.Id, *ab.Author.Id)
 		s.Equal(book.Id, ab.Book.Id)
 	}
 }
@@ -150,7 +150,7 @@ func (s *SuiteBookTest) TestGetByIdWithAuthor() {
 			err := json.NewDecoder(bytes.NewReader(w.Body.Bytes())).Decode(&result)
 			s.NoError(err)
 			s.NotNil(result.Data)
-			s.Equal(author.Id, result.Data.Author.Id)
+			s.Equal(author.Id, *result.Data.Author.Id)
 			s.Equal(book.Id, result.Data.Book.Id)
 		}
 	}

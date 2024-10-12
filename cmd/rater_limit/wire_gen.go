@@ -21,27 +21,31 @@ import (
 func NewAuthorController(db *sql.DB) *controller.Author {
 	author := usecases.NewAuthor()
 	book := usecases.NewBook()
-	controllerAuthor := controller.NewAuthor(db, author, book)
+	utils := controller.NewUtils()
+	controllerAuthor := controller.NewAuthor(db, author, book, utils)
 	return controllerAuthor
 }
 
 func NewBookController(db *sql.DB) *controller.Book {
 	book := usecases.NewBook()
 	author := usecases.NewAuthor()
-	controllerBook := controller.NewBook(db, book, author)
+	utils := controller.NewUtils()
+	controllerBook := controller.NewBook(db, book, author, utils)
 	return controllerBook
 }
 
 func NewAuthController(db *sql.DB) *controller.Auth {
 	user := newUser()
-	auth := controller.NewAuth(db, user)
+	utils := controller.NewUtils()
+	auth := controller.NewAuth(db, user, utils)
 	return auth
 }
 
 func NewAuthorRouter(db *sql.DB) *router.Author {
 	author := usecases.NewAuthor()
 	book := usecases.NewBook()
-	controllerAuthor := controller.NewAuthor(db, author, book)
+	utils := controller.NewUtils()
+	controllerAuthor := controller.NewAuthor(db, author, book, utils)
 	user := newUser()
 	routerAuthor := router.NewAuthor(controllerAuthor, user)
 	return routerAuthor
@@ -50,7 +54,8 @@ func NewAuthorRouter(db *sql.DB) *router.Author {
 func NewBookRouter(db *sql.DB) *router.Book {
 	book := usecases.NewBook()
 	author := usecases.NewAuthor()
-	controllerBook := controller.NewBook(db, book, author)
+	utils := controller.NewUtils()
+	controllerBook := controller.NewBook(db, book, author, utils)
 	user := newUser()
 	routerBook := router.NewBook(controllerBook, user)
 	return routerBook
@@ -58,7 +63,8 @@ func NewBookRouter(db *sql.DB) *router.Book {
 
 func NewAuthRouter(db *sql.DB) *router.Auth {
 	user := newUser()
-	auth := controller.NewAuth(db, user)
+	utils := controller.NewUtils()
+	auth := controller.NewAuth(db, user, utils)
 	routerAuth := router.NewAuth(auth)
 	return routerAuth
 }
@@ -74,13 +80,17 @@ var setUserUseCaseDependency = wire.NewSet(
 	newUser, wire.Bind(new(usecases.IUser), new(*usecases.User)),
 )
 
+var setHttpHandlerErrorDependency = wire.NewSet(controller.NewUtils, wire.Bind(new(controller.IHttpHandlerError), new(*controller.Utils)))
+
 // controller dependency
 var setAuthorControllerDependency = wire.NewSet(controller.NewAuthor, setBookUseCaseDependency,
-	setAuthorUseCaseDependency, wire.Bind(new(controller.IAuthor), new(*controller.Author)),
+	setAuthorUseCaseDependency,
+	setHttpHandlerErrorDependency, wire.Bind(new(controller.IAuthor), new(*controller.Author)),
 )
 
 var setBookControllerDependency = wire.NewSet(controller.NewBook, setBookUseCaseDependency,
-	setAuthorUseCaseDependency, wire.Bind(new(controller.IBooks), new(*controller.Book)),
+	setAuthorUseCaseDependency,
+	setHttpHandlerErrorDependency, wire.Bind(new(controller.IBooks), new(*controller.Book)),
 )
 
 var setAuthControllerDependency = wire.NewSet(controller.NewAuth, setUserUseCaseDependency, wire.Bind(new(controller.IAuth), new(*controller.Auth)))

@@ -60,7 +60,7 @@ func (b *Book) FindAllWithAuthor(ctx context.Context, db *sql.DB, authorUseCases
 		if err != nil {
 			return nil, err
 		}
-		bookAuthors = append(bookAuthors, dtos.BookWithAuthor{Author: *author, Book: book})
+		bookAuthors = append(bookAuthors, dtos.BookWithAuthor{Author: *dtos.ConvertAuthorToAuthorResponse(author), Book: book})
 	}
 	return bookAuthors, err
 }
@@ -77,13 +77,16 @@ func (b *Book) FindAllByAuthor(ctx context.Context, db *sql.DB, author string) (
 func (b *Book) FindById(ctx context.Context, db *sql.DB, id string) (*entity.Book, error) {
 	row, err := db.QueryContext(ctx, "SELECT * FROM books WHERE id=? LIMIT 1", id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find book by id: %w", err)
+		return nil, fmt.Errorf("failed to find book by id: %s", id)
 	}
 	defer row.Close()
 
 	row.Next()
 	book, err := b.scan(row)
-	return &book, err
+	if err != nil {
+		return nil, fmt.Errorf("failed to find book by id: %s", id)
+	}
+	return &book, nil
 }
 
 func (b *Book) FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, authorUseCases IAuthor) (*dtos.BookWithAuthor, error) {
@@ -96,7 +99,7 @@ func (b *Book) FindByIdWithAuthor(ctx context.Context, db *sql.DB, id string, au
 		return nil, err
 	}
 
-	return &dtos.BookWithAuthor{Book: *book, Author: *author}, nil
+	return &dtos.BookWithAuthor{Book: *book, Author: *dtos.ConvertAuthorToAuthorResponse(author)}, nil
 }
 
 func (b *Book) Create(ctx context.Context, db *sql.DB, bookCreate *dtos.BookCreate) (*entity.Book, error) {

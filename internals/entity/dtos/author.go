@@ -19,3 +19,9 @@ type AuthorPatch struct {
 	Birthday    *time.Time `json:"birthday"`
 	Description *string    `json:"description"`
 }
+
+type AuthorBody struct {
+	Name        *string `json:"name"`
+	Birthday    *string `json:"birthday"`
+	Description *string `json:"description"`
+}

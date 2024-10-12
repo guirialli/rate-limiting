@@ -30,3 +30,7 @@ type IAuth interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Register(w http.ResponseWriter, r *http.Request)
 }
+
+type IHttpHandlerError interface {
+	ResponseError(w http.ResponseWriter, message string, statusCode int)
+}

@@ -29,11 +29,17 @@ var setUserUseCaseDependency = wire.NewSet(
 	wire.Bind(new(usecases.IUser), new(*usecases.User)),
 )
 
+var setHttpHandlerErrorDependency = wire.NewSet(
+	controller.NewUtils,
+	wire.Bind(new(controller.IHttpHandlerError), new(*controller.Utils)),
+)
+
 // controller dependency
 var setAuthorControllerDependency = wire.NewSet(
 	controller.NewAuthor,
 	setBookUseCaseDependency,
 	setAuthorUseCaseDependency,
+	setHttpHandlerErrorDependency,
 	wire.Bind(new(controller.IAuthor), new(*controller.Author)),
 )
 
@@ -41,6 +47,7 @@ var setBookControllerDependency = wire.NewSet(
 	controller.NewBook,
 	setBookUseCaseDependency,
 	setAuthorUseCaseDependency,
+	setHttpHandlerErrorDependency,
 	wire.Bind(new(controller.IBooks), new(*controller.Book)),
 )
 
@@ -61,6 +68,7 @@ func NewAuthorController(db *sql.DB) *controller.Author {
 	wire.Build(
 		setAuthorUseCaseDependency,
 		setBookUseCaseDependency,
+		setHttpHandlerErrorDependency,
 		controller.NewAuthor,
 	)
 	return &controller.Author{}
@@ -70,6 +78,7 @@ func NewBookController(db *sql.DB) *controller.Book {
 	wire.Build(
 		setAuthorUseCaseDependency,
 		setBookUseCaseDependency,
+		setHttpHandlerErrorDependency,
 		controller.NewBook,
 	)
 	return &controller.Book{}
@@ -78,6 +87,7 @@ func NewBookController(db *sql.DB) *controller.Book {
 func NewAuthController(db *sql.DB) *controller.Auth {
 	wire.Build(
 		setUserUseCaseDependency,
+		setHttpHandlerErrorDependency,
 		controller.NewAuth,
 	)
 	return &controller.Auth{}
@@ -104,6 +114,7 @@ func NewBookRouter(db *sql.DB) *router.Book {
 func NewAuthRouter(db *sql.DB) *router.Auth {
 	wire.Build(
 		setAuthControllerDependency,
+		setHttpHandlerErrorDependency,
 		router.NewAuth,
 	)
 	return &router.Auth{}
