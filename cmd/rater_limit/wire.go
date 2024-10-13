@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"github.com/google/wire"
 	"github.com/guirialli/rater_limit/config"
+	"github.com/guirialli/rater_limit/internals/entity"
 	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/controller"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/middleware"
@@ -147,7 +148,9 @@ func newUser() *usecases.User {
 
 func newRateLimitUseCase(user usecases.IUser) *usecases.RaterLimit {
 	cfg, _ := config.LoadRaterLimitConfig()
-	rdb := database.NewRedisClient()
+	rCfg := config.LoadRedisConfig()
+
+	rdb := database.NewRedisClient[entity.RaterLimit](*rCfg)
 	raterLimit, err := usecases.NewRaterLimit(user, *cfg, rdb)
 	if err != nil {
 		panic(err)

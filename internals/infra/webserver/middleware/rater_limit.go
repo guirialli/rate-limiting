@@ -22,7 +22,7 @@ func (rl *RaterLimit) RateLimitMiddleware() func(next http.Handler) http.Handler
 				key = strings.Split(r.RemoteAddr, ":")[0]
 			}
 
-			if !rl.useCase.TrackAccess(key) {
+			if !rl.useCase.TrackAccess(r.Context(), key) {
 				http.Error(w,
 					"you have reached the maximum number of requests or actions allowed within a certain time frame",
 					http.StatusTooManyRequests)

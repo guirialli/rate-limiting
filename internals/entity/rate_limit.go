@@ -9,8 +9,8 @@ type RaterLimit struct {
 	BlockAt       *time.Time `json:"block_at"`
 }
 
-func NewRaterLimit(typer string, timeout time.Duration) RaterLimit {
-	return RaterLimit{
+func NewRaterLimit(typer string, timeout time.Duration) *RaterLimit {
+	return &RaterLimit{
 		Trys:          0,
 		Type:          typer,
 		AccessTimeout: time.Now().Add(timeout),

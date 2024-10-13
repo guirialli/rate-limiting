@@ -38,6 +38,6 @@ type IUser interface {
 }
 
 type IRaterLimit interface {
-	TrackAccess(key string) bool
+	TrackAccess(ctx context.Context, key string) bool
 	ValidToken(key string) bool
 }

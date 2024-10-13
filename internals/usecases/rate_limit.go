@@ -2,24 +2,22 @@ package usecases
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"github.com/go-chi/jwtauth"
 	"github.com/guirialli/rater_limit/config"
 	"github.com/guirialli/rater_limit/internals/entity"
-	"github.com/redis/go-redis/v9"
+	"github.com/guirialli/rater_limit/internals/infra/database"
 	"regexp"
 	"strings"
 	"time"
 )
 
 type RaterLimit struct {
-	rdb     *redis.Client
+	rdb     database.IRateLimitDatabase[entity.RaterLimit]
 	cfg     config.RaterLimit
 	jwtAuth *jwtauth.JWTAuth
 }
 
-func NewRaterLimit(userUseCase IUser, cfg config.RaterLimit, rdb *redis.Client) (*RaterLimit, error) {
+func NewRaterLimit(userUseCase IUser, cfg config.RaterLimit, rdb database.IRateLimitDatabase[entity.RaterLimit]) (*RaterLimit, error) {
 	return &RaterLimit{
 		rdb:     rdb,
 		cfg:     cfg,
@@ -27,40 +25,18 @@ func NewRaterLimit(userUseCase IUser, cfg config.RaterLimit, rdb *redis.Client) 
 	}, nil
 }
 
-func (rl *RaterLimit) getUser(key string) (entity.RaterLimit, bool) {
-	ctx := context.Background()
-	val, err := rl.rdb.Get(ctx, key).Result()
-	if errors.Is(err, redis.Nil) {
-		return entity.RaterLimit{}, false
-	} else if err != nil {
-		panic(err)
-	}
-
-	var u entity.RaterLimit
-	if err = json.Unmarshal([]byte(val), &u); err != nil {
-		panic(err)
-	}
-	return u, true
-}
-
-func (rl *RaterLimit) setUser(key string, u entity.RaterLimit) {
-	ctx := context.Background()
-	val, _ := json.Marshal(u)
-	rl.rdb.Set(ctx, key, val, 0)
-}
-
-func (rl *RaterLimit) TrackAccess(key string) bool {
+func (rl *RaterLimit) TrackAccess(ctx context.Context, key string) bool {
 	ipRegex := regexp.MustCompile(`^(?:\d{1,3}\.){3}\d{1,3}$`)
 
-	element, exists := rl.getUser(key)
+	element, exists := rl.rdb.Get(ctx, key)
 	if !exists {
 		if ipRegex.MatchString(key) {
 			element = entity.NewRaterLimit("ip", rl.cfg.IpRefresh)
 		} else {
 			element = entity.NewRaterLimit("jwt", rl.cfg.JwtRefresh)
 		}
-		rl.setUser(key, element)
-		return true
+		err := rl.rdb.Set(ctx, key, element)
+		return err == nil
 	} else if element.BlockAt != nil && element.BlockAt.After(time.Now()) {
 		return false
 	}
@@ -74,7 +50,10 @@ func (rl *RaterLimit) TrackAccess(key string) bool {
 			dtBlock := time.Now().Add(rl.cfg.BlockTimeout)
 			element.BlockAt = &dtBlock
 		}
-		rl.setUser(key, element)
+		if err := rl.rdb.Set(ctx, key, element); err != nil {
+			return false
+		}
+
 		return element.BlockAt == nil
 	}
 
@@ -85,12 +64,14 @@ func (rl *RaterLimit) TrackAccess(key string) bool {
 			dtBlock := time.Now().Add(rl.cfg.BlockTimeout)
 			element.BlockAt = &dtBlock
 		}
-		rl.setUser(key, element)
+		if err := rl.rdb.Set(ctx, key, element); err != nil {
+			return false
+		}
+
 		return element.BlockAt == nil
 	}
-
-	rl.setUser(key, element)
-	return true
+	err := rl.rdb.Set(ctx, key, element)
+	return err == nil
 }
 
 func (rl *RaterLimit) ValidToken(key string) bool {
