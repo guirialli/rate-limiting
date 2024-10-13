@@ -2,17 +2,17 @@
 
 ## Visão Geral
 
-O **** (ou limitador de taxa) é uma técnica essencial para controlar e restringir o número de requisições que um cliente—seja um usuário, IP ou serviço—pode realizar em uma aplicação em um intervalo de tempo específico.
+O  (ou limitador de taxa) é uma técnica essencial para controlar e restringir o número de requisições que um cliente—seja um usuário, IP ou serviço—pode realizar em uma aplicação em um intervalo de tempo específico.
 
-Neste projeto, implementamos um **rate limiting**em uma aplicação simples de livraria, com o objetivo de **demonstrar a eficácia** dessa técnica e sua **relevância em sistemas reais**, especialmente na **mitigação de ataques DDoS** e no controle do uso abusivo de recursos. O projeto foi desenvolvido **totalmente em Go**, utilizando **Docker** e **Redis** para gerenciamento de cache. A aplicação se conecta a um banco de dados **MySQL**, e toda a arquitetura do sistema foi projetada com base nos princípios da **Clean Architecture**, o que assegura **escalabilidade** e facilidade de manutenção.
+Neste projeto, implementamos um *rate limiting* em uma aplicação simples de livraria, com o objetivo de *demonstrar a eficácia* dessa técnica e sua *relevância em sistemas reais*, especialmente na *mitigação de ataques DDoS* e no controle do uso abusivo de recursos. O projeto foi desenvolvido *totalmente em Go*, utilizando *Docker* e *Redis* para gerenciamento de cache. A aplicação se conecta a um banco de dados *MySQL*, e toda a arquitetura do sistema foi projetada com base nos princípios da *Clean Architecture*, o que assegura *escalabilidade* e facilidade de manutenção.
 
-Para a implementação do **servidor e roteador HTTP**, utilizamos a biblioteca **Chi**, enquanto o gerenciamento de injeções de dependências foi feito com o **Google Wire**, garantindo uma estrutura de código limpa e modular.
+Para a implementação do *servidor e roteador HTTP*, utilizamos a biblioteca *Chi*, enquanto o gerenciamento de injeções de dependências foi feito com o *Google Wire*, garantindo uma estrutura de código limpa e modular.
 
 Esse projeto é um trabalho de conclusão de curso da pós graduação Go Expert.
 
 ## Uso
 
-Para utilizar o projeto **Rater Limit**, siga os passos abaixo:
+Para utilizar o projeto *Rater Limit*, siga os passos abaixo:
 
 ### Pré-requisitos
 
@@ -31,7 +31,7 @@ cd rater-limit
 
 Antes de iniciar a aplicação, você pode configurar as variáveis de ambiente no arquivo `.env`, localizado em `cmd/rater_limit`. As configurações incluem limites de taxa, informações do banco de dados, segurança JWT e configurações do Redis. Aqui estão algumas das variáveis importantes:
 
-- **Rate Limiting**:
+- *Rate Limiting*:
 
   - `IP_REFRESH_ACCESS`: Tempo (em segundos) para resetar as tentativas de acesso por IP.
   - `IP_TRYS_MAX`: Limite de tentativas por IP antes do bloqueio.
@@ -39,7 +39,7 @@ Antes de iniciar a aplicação, você pode configurar as variáveis de ambiente 
   - `JWT_TRYS_MAX`: Limite de tentativas por JWT antes do bloqueio.
   - `BLOCK_TIMEOUT`: Tempo (em minutos) que um IP ou JWT permanecerá bloqueado após exceder o limite de tentativas.
 
-- **Banco de Dados**:
+- *Banco de Dados*:
 
   - `DB_HOSTNAME`: Nome do host ou container que executa o MySQL.
   - `DB_PORT`: Porta do MySQL.
@@ -47,18 +47,16 @@ Antes de iniciar a aplicação, você pode configurar as variáveis de ambiente 
   - `DB_USER`: Usuário do banco de dados.
   - `DB_PASSWORD`: Senha do banco de dados.
 
-- **Configurações do Redis**:
+- *Configurações do Redis*:
 
   - `REDIS_ADDR`: Endereço e porta do servidor Redis.
 
   - `REDI``S_PASSWORD`: Senha para autenticação no Redis.
 
-    
-
-    ```
+```
     # Rater Limiting
     
-    # IP_REFRESH_ACCESS: Tempo em **segundos (s)** para resetar as tentativas de acesso de IPs ao limite máximo.
+    # IP_REFRESH_ACCESS: Tempo em *segundos (s)* para resetar as tentativas de acesso de IPs ao limite máximo.
     
     IP_REFRESH_ACCESS=1
     
@@ -66,7 +64,7 @@ Antes de iniciar a aplicação, você pode configurar as variáveis de ambiente 
     
     IP_TRYS_MAX=5
     
-    # JWT_REFRESH_ACCESS: Tempo em **segundos (s)** para resetar as tentativas de acesso de JWTs ao limite máximo.
+    # JWT_REFRESH_ACCESS: Tempo em *segundos (s)* para resetar as tentativas de acesso de JWTs ao limite máximo.
     
     JWT_REFRESH_ACCESS=1
     
@@ -74,7 +72,7 @@ Antes de iniciar a aplicação, você pode configurar as variáveis de ambiente 
     
     JWT_TRYS_MAX=10
     
-    # BLOCK_TIMEOUT: Tempo em **minutos (m)** que um IP ou JWT permanecerá bloqueado após exceder o limite de tentativas.
+    # BLOCK_TIMEOUT: Tempo em *minutos (m)* que um IP ou JWT permanecerá bloqueado após exceder o limite de tentativas.
     
     BLOCK_TIMEOUT=1
     
@@ -139,7 +137,7 @@ Antes de iniciar a aplicação, você pode configurar as variáveis de ambiente 
     # REDIS_DB: Número do banco Redis a ser utilizado.
     
     REDIS_DB=0
-    ```
+```
 
     
 
