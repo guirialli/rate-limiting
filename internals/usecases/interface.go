@@ -31,6 +31,10 @@ type IAuthor interface {
 	Delete(ctx context.Context, db *sql.DB, id string) error
 }
 
+type IAuth interface {
+	NewTokenAuth() *jwtauth.JWTAuth
+}
+
 type IUser interface {
 	Login(ctx context.Context, db *sql.DB, form *vos.LoginForm) (string, error)
 	Register(ctx context.Context, db *sql.DB, form *vos.RegisterForm) (string, error)

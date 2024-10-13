@@ -32,8 +32,12 @@ var setUserUseCaseDependency = wire.NewSet(
 )
 var setRaterLimitUseCaseDependency = wire.NewSet(
 	newRateLimitUseCase,
-	setUserUseCaseDependency,
+	setAuthUseCaseDependency,
 	wire.Bind(new(usecases.IRaterLimit), new(*usecases.RaterLimit)),
+)
+var setAuthUseCaseDependency = wire.NewSet(
+	newUser,
+	wire.Bind(new(usecases.IAuth), new(*usecases.User)),
 )
 
 var setHttpHandlerErrorDependency = wire.NewSet(
@@ -146,7 +150,7 @@ func newUser() *usecases.User {
 	return user
 }
 
-func newRateLimitUseCase(user usecases.IUser) *usecases.RaterLimit {
+func newRateLimitUseCase(user usecases.IAuth) *usecases.RaterLimit {
 	cfg, _ := config.LoadRaterLimitConfig()
 	rCfg := config.LoadRedisConfig()
 

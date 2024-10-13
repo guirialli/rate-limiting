@@ -17,7 +17,7 @@ type RaterLimit struct {
 	jwtAuth *jwtauth.JWTAuth
 }
 
-func NewRaterLimit(userUseCase IUser, cfg config.RaterLimit, rdb database.IRateLimitDatabase[entity.RaterLimit]) (*RaterLimit, error) {
+func NewRaterLimit(userUseCase IAuth, cfg config.RaterLimit, rdb database.IRateLimitDatabase[entity.RaterLimit]) (*RaterLimit, error) {
 	return &RaterLimit{
 		rdb:     rdb,
 		cfg:     cfg,
