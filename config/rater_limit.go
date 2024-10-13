@@ -8,11 +8,11 @@ import (
 )
 
 type RaterLimit struct {
-	IpTimeout    time.Duration `json:"IP_TIMEOUT"`
-	JwtTimeout   time.Duration `json:"JWT_TIMEOUT"`
-	IpTrysMax    int           `json:"IP_TRYS_MAX"`
-	JwtTrysMax   int           `json:"JWT_TRYS_MAX"`
-	BlockTimeout time.Duration `json:"BLOCK_TIMEOUT"`
+	IpRefresh    time.Duration
+	JwtRefresh   time.Duration
+	IpTrysMax    int
+	JwtTrysMax   int
+	BlockTimeout time.Duration
 }
 
 func LoadRaterLimitConfig() (*RaterLimit, error) {
@@ -20,12 +20,12 @@ func LoadRaterLimitConfig() (*RaterLimit, error) {
 		return nil, err
 	}
 
-	jwtTimeout, err := strconv.Atoi(os.Getenv("JWT_TIMEOUT"))
+	jwtRefresh, err := strconv.Atoi(os.Getenv("JWT_REFRESH_ACCESS"))
 	if err != nil {
 		return nil, err
 	}
 
-	ipTimeout, err := strconv.Atoi(os.Getenv("IP_TIMEOUT"))
+	ipRefresh, err := strconv.Atoi(os.Getenv("IP_REFRESH_ACCESS"))
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func LoadRaterLimitConfig() (*RaterLimit, error) {
 	}
 
 	return &RaterLimit{
-		JwtTimeout:   time.Duration(jwtTimeout) * time.Second,
-		IpTimeout:    time.Duration(ipTimeout) * time.Second,
+		JwtRefresh:   time.Duration(jwtRefresh) * time.Second,
+		IpRefresh:    time.Duration(ipRefresh) * time.Second,
 		JwtTrysMax:   jwtTryMax,
 		BlockTimeout: time.Duration(blockTimeout) * time.Minute,
 		IpTrysMax:    ipTrysMax,
