@@ -73,7 +73,7 @@ func NewAuthRouter(db *sql.DB) *router.Auth {
 
 func NewRaterLimitMiddleware() *middleware.RaterLimit {
 	user := newUser()
-	raterLimit := newRaterLimitMiddleware(user)
+	raterLimit := newRateLimitUseCase(user)
 	middlewareRaterLimit := middleware.NewRaterLimit(raterLimit)
 	return middlewareRaterLimit
 }
@@ -90,7 +90,7 @@ var setUserUseCaseDependency = wire.NewSet(
 )
 
 var setRaterLimitUseCaseDependency = wire.NewSet(
-	newRaterLimitMiddleware,
+	newRateLimitUseCase,
 	setUserUseCaseDependency, wire.Bind(new(usecases.IRaterLimit), new(*usecases.RaterLimit)),
 )
 
@@ -125,7 +125,7 @@ func newUser() *usecases.User {
 	return user
 }
 
-func newRaterLimitMiddleware(user usecases.IUser) *usecases.RaterLimit {
+func newRateLimitUseCase(user usecases.IUser) *usecases.RaterLimit {
 	cfg, _ := config.LoadRaterLimitConfig()
 	rdb := database.NewRedisClient()
 	raterLimit, err := usecases.NewRaterLimit(user, *cfg, rdb)
