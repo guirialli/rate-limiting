@@ -14,7 +14,7 @@ import (
 // @termsOfService: https://swagger.io/terms/
 
 // @contact.name Guilherme Rialli
-// @contact.url www.github.com/guirialli/
+// @contact.url https://www.linkedin.com/in/guilherme-rialli-oliveira-1b826a150/
 // @contact.email gui.rialli@gmail.com
 
 // @host localhost:8080

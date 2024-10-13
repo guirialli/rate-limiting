@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "Guilherme Rialli",
-            "url": "www.github.com/guirialli/",
+            "url": "https://www.linkedin.com/in/guilherme-rialli-oliveira-1b826a150/",
             "email": "gui.rialli@gmail.com"
         },
         "version": "{{.Version}}"
