@@ -35,6 +35,7 @@ func (s *Server) Start(raterLimit middleware.IRaterLimit) error {
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 	}))
+
 	for _, route := range s.routers {
 		if err := route.Use(r); err != nil {
 			return err

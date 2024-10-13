@@ -8,6 +8,21 @@ import (
 	"github.com/guirialli/rater_limit/internals/infra/webserver/server"
 )
 
+// @title Rater Limit
+// @version 1.0
+// @description rater limit example
+// @termsOfService: https://swagger.io/terms/
+
+// @contact.name Guilherme Rialli
+// @contact.url www.github.com/guirialli/
+// @contact.email gui.rialli@gmail.com
+
+// @host localhost:8080
+// @BasePath /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
 func main() {
 	fmt.Println("Start Rater Limit Application")
 	db, err := database.NewMySql()
@@ -39,6 +54,7 @@ func main() {
 		NewBookRouter(con),
 		NewAuthorRouter(con),
 		NewAuthRouter(con),
+		NewSwaggerRouter("./docs"),
 	}).Start(NewRaterLimitMiddleware()); err != nil {
 		panic(err)
 	}

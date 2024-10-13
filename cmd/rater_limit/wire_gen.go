@@ -72,6 +72,11 @@ func NewAuthRouter(db *sql.DB) *router.Auth {
 	return routerAuth
 }
 
+func NewSwaggerRouter(path string) *router.Swagger {
+	swagger := router.NewSwagger(path)
+	return swagger
+}
+
 func NewRaterLimitMiddleware() *middleware.RaterLimit {
 	user := newUser()
 	raterLimit := newRateLimitUseCase(user)

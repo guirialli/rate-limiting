@@ -2,7 +2,7 @@ services:
   rater_limit_db:
     image: mysql:latest
     ports:
-      - "3306:3306"
+      - ":3306"
     container_name: "rater_limit_db"
     volumes:
       - ./.docker/database:/var/lib/mysql
@@ -34,6 +34,7 @@ services:
     volumes:
       - ./cmd/rater_limit/init.sql:/app/init.sql
       - ./cmd/rater_limit/.env:/app/.env
+      - ./docs:/app/docs
 
   redis:
     image: redis:latest

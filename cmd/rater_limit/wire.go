@@ -131,6 +131,13 @@ func NewAuthRouter(db *sql.DB) *router.Auth {
 	return &router.Auth{}
 }
 
+func NewSwaggerRouter(path string) *router.Swagger {
+	wire.Build(
+		router.NewSwagger,
+	)
+	return &router.Swagger{}
+}
+
 func NewRaterLimitMiddleware() *middleware.RaterLimit {
 	wire.Build(
 		setRaterLimitUseCaseDependency,

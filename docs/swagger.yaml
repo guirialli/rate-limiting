@@ -1,0 +1,744 @@
+basePath: /
+definitions:
+  controller.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dtos.AuthorCreate:
+    properties:
+      birthday:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  dtos.AuthorPatch:
+    properties:
+      birthday:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  dtos.AuthorUpdate:
+    properties:
+      birthday:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  dtos.AuthorWithBooks:
+    properties:
+      author:
+        $ref: '#/definitions/dtos.ResponseAuthor'
+      books:
+        items:
+          $ref: '#/definitions/entity.Book'
+        type: array
+    type: object
+  dtos.BookCreate:
+    properties:
+      author:
+        type: string
+      description:
+        type: string
+      pages:
+        type: integer
+      title:
+        type: string
+    type: object
+  dtos.BookPatch:
+    properties:
+      author:
+        type: string
+      description:
+        type: string
+      pages:
+        type: integer
+      title:
+        type: string
+    type: object
+  dtos.BookUpdate:
+    properties:
+      author:
+        type: string
+      description:
+        type: string
+      pages:
+        type: integer
+      title:
+        type: string
+    type: object
+  dtos.BookWithAuthor:
+    properties:
+      author:
+        $ref: '#/definitions/dtos.ResponseAuthor'
+      book:
+        $ref: '#/definitions/entity.Book'
+    type: object
+  dtos.LoginForm:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.RegisterForm:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.ResponseAuthor:
+    properties:
+      birthday:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  dtos.ResponseJwt:
+    properties:
+      token:
+        type: string
+    type: object
+  entity.Book:
+    properties:
+      author:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      pages:
+        type: integer
+      title:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: gui.rialli@gmail.com
+    name: Guilherme Rialli
+    url: www.github.com/guirialli/
+  description: rater limit example
+  title: Rater Limit
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to get a JWT token
+      parameters:
+      - description: Login Form
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LoginForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful login
+          schema:
+            $ref: '#/definitions/dtos.ResponseJwt'
+        "400":
+          description: Invalid body
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "401":
+          description: Invalid username or password
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Login user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register to create a new user and get a JWT token
+      parameters:
+      - description: Register Form
+        in: body
+        name: register
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.RegisterForm'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successful registration
+          schema:
+            $ref: '#/definitions/dtos.ResponseJwt'
+        "400":
+          description: Invalid body
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      summary: Register user
+      tags:
+      - auth
+  /authors:
+    get:
+      description: Retrieve a list of all authors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of authors
+          schema:
+            items:
+              $ref: '#/definitions/dtos.ResponseAuthor'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all authors
+      tags:
+      - authors
+    post:
+      consumes:
+      - application/json
+      description: Create a new author in the system
+      parameters:
+      - description: Author data
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AuthorCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created author
+          schema:
+            $ref: '#/definitions/dtos.ResponseAuthor'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new author
+      tags:
+      - authors
+  /authors/{id}:
+    delete:
+      description: Remove an author from the system
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Author not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an author
+      tags:
+      - authors
+    get:
+      description: Retrieve a specific author by ID
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Author details
+          schema:
+            $ref: '#/definitions/dtos.ResponseAuthor'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Author not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get author by ID
+      tags:
+      - authors
+    patch:
+      consumes:
+      - application/json
+      description: Update specific fields of an author
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Author data
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AuthorPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated author
+          schema:
+            $ref: '#/definitions/dtos.ResponseAuthor'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Author not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Partially update an author
+      tags:
+      - authors
+    put:
+      consumes:
+      - application/json
+      description: Update an existing author's details
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Author data
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.AuthorUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated author
+          schema:
+            $ref: '#/definitions/dtos.ResponseAuthor'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Author not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing author
+      tags:
+      - authors
+  /authors/{id}/books:
+    get:
+      description: Retrieve a specific author by ID along with their books
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Author details with books
+          schema:
+            $ref: '#/definitions/dtos.AuthorWithBooks'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Author not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get author by ID with books
+      tags:
+      - authors
+  /authors/books:
+    get:
+      description: Retrieve a list of all authors along with their books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of authors with their books
+          schema:
+            items:
+              $ref: '#/definitions/dtos.AuthorWithBooks'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all authors with books
+      tags:
+      - authors
+  /books:
+    get:
+      description: Retrieve a list of all books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of books
+          schema:
+            items:
+              $ref: '#/definitions/entity.Book'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all books
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      description: Add a new book to the database
+      parameters:
+      - description: Book data
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.BookCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created book
+          schema:
+            $ref: '#/definitions/entity.Book'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new book
+      tags:
+      - books
+  /books/{id}:
+    delete:
+      description: Remove a book from the database
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a book
+      tags:
+      - books
+    get:
+      description: Retrieve a specific book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Book details
+          schema:
+            $ref: '#/definitions/entity.Book'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get book by ID
+      tags:
+      - books
+    patch:
+      consumes:
+      - application/json
+      description: Partially update book details in the database
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch data for the book
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.BookPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Patched book
+          schema:
+            $ref: '#/definitions/entity.Book'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Patch an existing book
+      tags:
+      - books
+    put:
+      consumes:
+      - application/json
+      description: Update book details in the database
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated book data
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.BookUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated book
+          schema:
+            $ref: '#/definitions/entity.Book'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing book
+      tags:
+      - books
+  /books/{id}/author:
+    get:
+      description: Retrieve a specific book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Book details
+          schema:
+            $ref: '#/definitions/dtos.BookWithAuthor'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get book by ID with Author
+      tags:
+      - books
+  /books/author:
+    get:
+      description: Retrieve a list of all books along with their authors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of books with authors
+          schema:
+            items:
+              $ref: '#/definitions/dtos.BookWithAuthor'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all books with authors
+      tags:
+      - books
+  /public/authors:
+    get:
+      description: Retrieve a list of all authors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of authors
+          schema:
+            items:
+              $ref: '#/definitions/dtos.ResponseAuthor'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all authors
+      tags:
+      - authors
+  /public/authors/{id}:
+    get:
+      description: Retrieve a specific author by ID along with their books
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Author details with books
+          schema:
+            $ref: '#/definitions/dtos.AuthorWithBooks'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Author not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get author by ID with books
+      tags:
+      - authors
+  /public/books:
+    get:
+      description: Retrieve a list of all books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of books
+          schema:
+            items:
+              $ref: '#/definitions/entity.Book'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all books
+      tags:
+      - books
+  /public/books/{id}:
+    get:
+      description: Retrieve a specific book by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Book details
+          schema:
+            $ref: '#/definitions/dtos.BookWithAuthor'
+        "400":
+          description: ID is required
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/controller.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get book by ID with Author
+      tags:
+      - books
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

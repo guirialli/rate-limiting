@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Author handles author-related requests.
 type Author struct {
 	db          *sql.DB
 	useCase     usecases.IAuthor
@@ -17,6 +18,7 @@ type Author struct {
 	errHandler  IHttpHandlerError
 }
 
+// NewAuthor creates a new Author controller.
 func NewAuthor(db *sql.DB, useCase usecases.IAuthor, book usecases.IBook, errHandler IHttpHandlerError) *Author {
 	return &Author{
 		db:          db,
@@ -44,7 +46,6 @@ func (a *Author) unmarshalBody(r *http.Request) (*dtos.AuthorPatch, error) {
 		Birthday:    birthday,
 		Description: body.Description,
 	}, nil
-
 }
 
 func (a *Author) response(w http.ResponseWriter, author any, statusCode int) {
@@ -60,6 +61,16 @@ func (a *Author) response(w http.ResponseWriter, author any, statusCode int) {
 	}
 }
 
+// GetAll godoc
+// @Summary Get all authors
+// @Description Retrieve a list of all authors
+// @Tags authors
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} dtos.ResponseAuthor "List of authors"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /authors [get]
+// @Router /public/authors [get]
 func (a *Author) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authors, err := a.useCase.FindAll(ctx, a.db)
@@ -76,6 +87,15 @@ func (a *Author) GetAll(w http.ResponseWriter, r *http.Request) {
 	a.response(w, responseAuthors, http.StatusOK)
 }
 
+// GetAllWithBooks godoc
+// @Summary Get all authors with books
+// @Description Retrieve a list of all authors along with their books
+// @Tags authors
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} dtos.AuthorWithBooks "List of authors with their books"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /authors/books [get]
 func (a *Author) GetAllWithBooks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	authors, err := a.useCase.FindAllWithBooks(ctx, a.db, a.bookUseCase)
@@ -85,9 +105,19 @@ func (a *Author) GetAllWithBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.response(w, authors, http.StatusOK)
-
 }
 
+// GetById godoc
+// @Summary Get author by ID
+// @Description Retrieve a specific author by ID
+// @Tags authors
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Author ID"
+// @Success 200 {object} dtos.ResponseAuthor "Author details"
+// @Failure 400 {object} ErrorResponse "ID is required"
+// @Failure 404 {object} ErrorResponse "Author not found"
+// @Router /authors/{id} [get]
 func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -104,6 +134,18 @@ func (a *Author) GetById(w http.ResponseWriter, r *http.Request) {
 	a.response(w, dtos.ConvertAuthorToAuthorResponse(author), http.StatusOK)
 }
 
+// GetByIdWithBooks godoc
+// @Summary Get author by ID with books
+// @Description Retrieve a specific author by ID along with their books
+// @Tags authors
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Author ID"
+// @Success 200 {object} dtos.AuthorWithBooks "Author details with books"
+// @Failure 400 {object} ErrorResponse "ID is required"
+// @Failure 404 {object} ErrorResponse "Author not found"
+// @Router /authors/{id}/books [get]
+// @Router /public/authors/{id} [get]
 func (a *Author) GetByIdWithBooks(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -117,19 +159,20 @@ func (a *Author) GetByIdWithBooks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(dtos.ResponseJson[dtos.AuthorWithBooks]{
-		Status: http.StatusOK,
-		Data:   *author,
-	})
-
-	if err != nil {
-		a.errHandler.ResponseError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	a.response(w, author, http.StatusOK)
 }
 
+// Create godoc
+// @Summary Create a new author
+// @Description Create a new author in the system
+// @Tags authors
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param author body dtos.AuthorCreate true "Author data"
+// @Success 201 {object} dtos.ResponseAuthor "Created author"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Router /authors [post]
 func (a *Author) Create(w http.ResponseWriter, r *http.Request) {
 	body, err := a.unmarshalBody(r)
 	if err != nil {
@@ -154,6 +197,19 @@ func (a *Author) Create(w http.ResponseWriter, r *http.Request) {
 	a.response(w, dtos.ConvertAuthorToAuthorResponse(author), http.StatusCreated)
 }
 
+// Update godoc
+// @Summary Update an existing author
+// @Description Update an existing author's details
+// @Tags authors
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Author ID"
+// @Param author body dtos.AuthorUpdate true "Author data"
+// @Success 200 {object} dtos.ResponseAuthor "Updated author"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 404 {object} ErrorResponse "Author not found"
+// @Router /authors/{id} [put]
 func (a *Author) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -186,6 +242,19 @@ func (a *Author) Update(w http.ResponseWriter, r *http.Request) {
 	a.response(w, dtos.ConvertAuthorToAuthorResponse(author), http.StatusOK)
 }
 
+// Patch godoc
+// @Summary Partially update an author
+// @Description Update specific fields of an author
+// @Tags authors
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Author ID"
+// @Param author body dtos.AuthorPatch true "Author data"
+// @Success 200 {object} dtos.ResponseAuthor "Updated author"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 404 {object} ErrorResponse "Author not found"
+// @Router /authors/{id} [patch]
 func (a *Author) Patch(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -211,6 +280,16 @@ func (a *Author) Patch(w http.ResponseWriter, r *http.Request) {
 	a.response(w, dtos.ConvertAuthorToAuthorResponse(author), http.StatusOK)
 }
 
+// Delete godoc
+// @Summary Delete an author
+// @Description Remove an author from the system
+// @Tags authors
+// @Security ApiKeyAuth
+// @Param id path string true "Author ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} ErrorResponse "ID is required"
+// @Failure 404 {object} ErrorResponse "Author not found"
+// @Router /authors/{id} [delete]
 func (a *Author) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

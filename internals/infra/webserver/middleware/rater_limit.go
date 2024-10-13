@@ -17,6 +17,11 @@ func NewRaterLimit(useCase usecases.IRaterLimit) *RaterLimit {
 func (rl *RaterLimit) RateLimitMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			path := r.URL.Path
+			if strings.HasPrefix(path, "/swagger") {
+				next.ServeHTTP(w, r)
+				return
+			}
 			key := r.Header.Get("Authorization")
 			if !rl.useCase.ValidToken(key) {
 				key = strings.Split(r.RemoteAddr, ":")[0]
