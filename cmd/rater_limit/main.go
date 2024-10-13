@@ -39,7 +39,7 @@ func main() {
 		NewBookRouter(con),
 		NewAuthorRouter(con),
 		NewAuthRouter(con),
-	}).Start(); err != nil {
+	}).Start(NewRaterLimitMiddleware()); err != nil {
 		panic(err)
 	}
 }

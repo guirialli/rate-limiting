@@ -10,7 +10,9 @@ import (
 	"database/sql"
 	"github.com/google/wire"
 	"github.com/guirialli/rater_limit/config"
+	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/controller"
+	"github.com/guirialli/rater_limit/internals/infra/webserver/middleware"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/router"
 	"github.com/guirialli/rater_limit/internals/usecases"
 )
@@ -69,6 +71,13 @@ func NewAuthRouter(db *sql.DB) *router.Auth {
 	return routerAuth
 }
 
+func NewRaterLimitMiddleware() *middleware.RaterLimit {
+	user := newUser()
+	raterLimit := newRaterLimitMiddleware(user)
+	middlewareRaterLimit := middleware.NewRaterLimit(raterLimit)
+	return middlewareRaterLimit
+}
+
 // wire.go:
 
 // Use Cases Dependency
@@ -78,6 +87,11 @@ var setBookUseCaseDependency = wire.NewSet(usecases.NewBook, wire.Bind(new(useca
 
 var setUserUseCaseDependency = wire.NewSet(
 	newUser, wire.Bind(new(usecases.IUser), new(*usecases.User)),
+)
+
+var setRaterLimitUseCaseDependency = wire.NewSet(
+	newRaterLimitMiddleware,
+	setUserUseCaseDependency, wire.Bind(new(usecases.IRaterLimit), new(*usecases.RaterLimit)),
 )
 
 var setHttpHandlerErrorDependency = wire.NewSet(controller.NewUtils, wire.Bind(new(controller.IHttpHandlerError), new(*controller.Utils)))
@@ -109,4 +123,14 @@ func newUser() *usecases.User {
 		panic(err)
 	}
 	return user
+}
+
+func newRaterLimitMiddleware(user usecases.IUser) *usecases.RaterLimit {
+	cfg, _ := config.LoadRaterLimitConfig()
+	rdb := database.NewRedisClient()
+	raterLimit, err := usecases.NewRaterLimit(user, *cfg, rdb)
+	if err != nil {
+		panic(err)
+	}
+	return raterLimit
 }

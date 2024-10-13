@@ -5,10 +5,11 @@ package main
 
 import (
 	"database/sql"
-
 	"github.com/google/wire"
 	"github.com/guirialli/rater_limit/config"
+	"github.com/guirialli/rater_limit/internals/infra/database"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/controller"
+	"github.com/guirialli/rater_limit/internals/infra/webserver/middleware"
 	"github.com/guirialli/rater_limit/internals/infra/webserver/router"
 	"github.com/guirialli/rater_limit/internals/usecases"
 )
@@ -27,6 +28,11 @@ var setBookUseCaseDependency = wire.NewSet(
 var setUserUseCaseDependency = wire.NewSet(
 	newUser,
 	wire.Bind(new(usecases.IUser), new(*usecases.User)),
+)
+var setRaterLimitUseCaseDependency = wire.NewSet(
+	newRaterLimitMiddleware,
+	setUserUseCaseDependency,
+	wire.Bind(new(usecases.IRaterLimit), new(*usecases.RaterLimit)),
 )
 
 var setHttpHandlerErrorDependency = wire.NewSet(
@@ -120,6 +126,14 @@ func NewAuthRouter(db *sql.DB) *router.Auth {
 	return &router.Auth{}
 }
 
+func NewRaterLimitMiddleware() *middleware.RaterLimit {
+	wire.Build(
+		setRaterLimitUseCaseDependency,
+		middleware.NewRaterLimit,
+	)
+	return &middleware.RaterLimit{}
+}
+
 // utils constructors
 // This function create a user use case without errors
 func newUser() *usecases.User {
@@ -129,4 +143,14 @@ func newUser() *usecases.User {
 		panic(err)
 	}
 	return user
+}
+
+func newRaterLimitMiddleware(user usecases.IUser) *usecases.RaterLimit {
+	cfg, _ := config.LoadRaterLimitConfig()
+	rdb := database.NewRedisClient()
+	raterLimit, err := usecases.NewRaterLimit(user, *cfg, rdb)
+	if err != nil {
+		panic(err)
+	}
+	return raterLimit
 }

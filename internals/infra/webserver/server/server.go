@@ -23,21 +23,12 @@ func NewServer(config *config.WebServer, routers []router.UseRouter) *Server {
 	}
 }
 
-func (s *Server) Start() error {
-	cfgRater, err := config.LoadRaterLimitConfig()
-	if err != nil {
-		return err
-	}
-	rateLimit, err := middleware.NewRaterLimit(*cfgRater)
-	if err != nil {
-		return err
-	}
+func (s *Server) Start(raterLimit middleware.IRaterLimit) error {
 
 	r := chi.NewRouter()
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
-
-	r.Use(rateLimit.RateLimitMiddleware())
+	r.Use(raterLimit.RateLimitMiddleware())
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"http://*", "https://*"},
@@ -45,14 +36,14 @@ func (s *Server) Start() error {
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 	}))
 	for _, route := range s.routers {
-		if err = route.Use(r); err != nil {
+		if err := route.Use(r); err != nil {
 			return err
 		}
 	}
 
 	url := fmt.Sprintf("%s:%d", s.config.Ip, s.config.Port)
 	fmt.Printf("Server listen on http://%s\n", url)
-	if err = http.ListenAndServe(url, r); err != nil {
+	if err := http.ListenAndServe(url, r); err != nil {
 		return err
 	}
 	return nil

@@ -36,3 +36,8 @@ type IUser interface {
 	Register(ctx context.Context, db *sql.DB, form *vos.RegisterForm) (string, error)
 	NewTokenAuth() *jwtauth.JWTAuth
 }
+
+type IRaterLimit interface {
+	TrackAccess(key string) bool
+	ValidToken(key string) bool
+}
