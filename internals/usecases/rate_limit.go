@@ -6,27 +6,12 @@ import (
 	"errors"
 	"github.com/go-chi/jwtauth"
 	"github.com/guirialli/rater_limit/config"
+	"github.com/guirialli/rater_limit/internals/entity"
 	"github.com/redis/go-redis/v9"
 	"regexp"
 	"strings"
 	"time"
 )
-
-type raterLimitUser struct {
-	Trys          int        `json:"trys"`
-	Type          string     `json:"type"`
-	AccessTimeout time.Time  `json:"access_timeout"`
-	BlockAt       *time.Time `json:"block_at"`
-}
-
-func newUser(typer string, timeout time.Duration) raterLimitUser {
-	return raterLimitUser{
-		Trys:          0,
-		Type:          typer,
-		AccessTimeout: time.Now().Add(timeout),
-		BlockAt:       nil,
-	}
-}
 
 type RaterLimit struct {
 	rdb     *redis.Client
@@ -42,23 +27,23 @@ func NewRaterLimit(userUseCase IUser, cfg config.RaterLimit, rdb *redis.Client) 
 	}, nil
 }
 
-func (rl *RaterLimit) getUser(key string) (raterLimitUser, bool) {
+func (rl *RaterLimit) getUser(key string) (entity.RaterLimit, bool) {
 	ctx := context.Background()
 	val, err := rl.rdb.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
-		return raterLimitUser{}, false
+		return entity.RaterLimit{}, false
 	} else if err != nil {
 		panic(err)
 	}
 
-	var u raterLimitUser
+	var u entity.RaterLimit
 	if err = json.Unmarshal([]byte(val), &u); err != nil {
 		panic(err)
 	}
 	return u, true
 }
 
-func (rl *RaterLimit) setUser(key string, u raterLimitUser) {
+func (rl *RaterLimit) setUser(key string, u entity.RaterLimit) {
 	ctx := context.Background()
 	val, _ := json.Marshal(u)
 	rl.rdb.Set(ctx, key, val, 0)
@@ -70,9 +55,9 @@ func (rl *RaterLimit) TrackAccess(key string) bool {
 	element, exists := rl.getUser(key)
 	if !exists {
 		if ipRegex.MatchString(key) {
-			element = newUser("ip", rl.cfg.IpRefresh)
+			element = entity.NewRaterLimit("ip", rl.cfg.IpRefresh)
 		} else {
-			element = newUser("jwt", rl.cfg.JwtRefresh)
+			element = entity.NewRaterLimit("jwt", rl.cfg.JwtRefresh)
 		}
 		rl.setUser(key, element)
 		return true
@@ -84,7 +69,7 @@ func (rl *RaterLimit) TrackAccess(key string) bool {
 
 	if element.Type == "jwt" && element.Trys >= rl.cfg.JwtTrysMax {
 		if element.AccessTimeout.Before(time.Now()) {
-			element = newUser(element.Type, rl.cfg.JwtRefresh)
+			element = entity.NewRaterLimit(element.Type, rl.cfg.JwtRefresh)
 		} else {
 			dtBlock := time.Now().Add(rl.cfg.BlockTimeout)
 			element.BlockAt = &dtBlock
@@ -95,7 +80,7 @@ func (rl *RaterLimit) TrackAccess(key string) bool {
 
 	if element.Type == "ip" && element.Trys >= rl.cfg.IpTrysMax {
 		if element.AccessTimeout.Before(time.Now()) {
-			element = newUser(element.Type, rl.cfg.IpRefresh)
+			element = entity.NewRaterLimit(element.Type, rl.cfg.IpRefresh)
 		} else {
 			dtBlock := time.Now().Add(rl.cfg.BlockTimeout)
 			element.BlockAt = &dtBlock
