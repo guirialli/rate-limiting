@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS books;
 DROP TABLE IF EXISTS authors;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS rate_limit;
 
 CREATE TABLE IF NOT EXISTS books
 (
@@ -21,4 +22,11 @@ CREATE TABLE IF NOT EXISTS users
     id varchar(255) PRIMARY KEY,
     username varchar(64) NOT NULL UNIQUE,
     password TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rate_limit(
+    Id varchar(255)  PRIMARY KEY,
+    Trys integer NOT NULL DEFAULT 0,
+    Typer varchar(255) NOT NULL,
+    AccessTimeout datetime NOT NULL,
+    BlockAt datetime
 );

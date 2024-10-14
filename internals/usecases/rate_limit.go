@@ -17,17 +17,16 @@ type RaterLimit struct {
 	jwtAuth *jwtauth.JWTAuth
 }
 
-func NewRaterLimit(userUseCase IAuth, cfg config.RaterLimit, rdb database.IRateLimitDatabase[entity.RaterLimit]) (*RaterLimit, error) {
+func NewRaterLimit(authUseCase IAuth, cfg config.RaterLimit, rdb database.IRateLimitDatabase[entity.RaterLimit]) (*RaterLimit, error) {
 	return &RaterLimit{
 		rdb:     rdb,
 		cfg:     cfg,
-		jwtAuth: userUseCase.NewTokenAuth(),
+		jwtAuth: authUseCase.NewTokenAuth(),
 	}, nil
 }
 
 func (rl *RaterLimit) TrackAccess(ctx context.Context, key string) bool {
 	ipRegex := regexp.MustCompile(`^(?:\d{1,3}\.){3}\d{1,3}$`)
-
 	element, exists := rl.rdb.Get(ctx, key)
 	if !exists {
 		if ipRegex.MatchString(key) {
@@ -43,9 +42,9 @@ func (rl *RaterLimit) TrackAccess(ctx context.Context, key string) bool {
 
 	element.Trys++
 
-	if element.Type == "jwt" && element.Trys >= rl.cfg.JwtTrysMax {
+	if element.Typer == "jwt" && element.Trys >= rl.cfg.JwtTrysMax {
 		if element.AccessTimeout.Before(time.Now()) {
-			element = entity.NewRaterLimit(element.Type, rl.cfg.JwtRefresh)
+			element = entity.NewRaterLimit(element.Typer, rl.cfg.JwtRefresh)
 		} else {
 			dtBlock := time.Now().Add(rl.cfg.BlockTimeout)
 			element.BlockAt = &dtBlock
@@ -57,9 +56,9 @@ func (rl *RaterLimit) TrackAccess(ctx context.Context, key string) bool {
 		return element.BlockAt == nil
 	}
 
-	if element.Type == "ip" && element.Trys >= rl.cfg.IpTrysMax {
+	if element.Typer == "ip" && element.Trys >= rl.cfg.IpTrysMax {
 		if element.AccessTimeout.Before(time.Now()) {
-			element = entity.NewRaterLimit(element.Type, rl.cfg.IpRefresh)
+			element = entity.NewRaterLimit(element.Typer, rl.cfg.IpRefresh)
 		} else {
 			dtBlock := time.Now().Add(rl.cfg.BlockTimeout)
 			element.BlockAt = &dtBlock
